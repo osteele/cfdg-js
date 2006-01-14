@@ -1,0 +1,12 @@
+<canvas>
+  <script src="parser.js"/>
+  <script src="drawing.js"/>
+  <script>
+    Shapes = {
+      SQUARE: function () {Debug.write('SQUARE')}
+    }
+    function print(s) {Debug.write(s)}
+    Debug.write('g');
+    draw("rule r0 {SQUARE {}}");
+  </script>
+</canvas>

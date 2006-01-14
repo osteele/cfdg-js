@@ -1,4 +1,8 @@
 /*
+Implement notes:
+- OL has a bug where local "rule" hides global "Rule" from new.
+- "for (var i in ar)" traverses backwards in Flash
+
 Tests:
 - blank lines
 
@@ -140,6 +144,10 @@ Parser.prototype = {
 
 var Builder = function (model) {
 	this.model = model;
+    var names = [].concat(ATTRIBUTE_NAMES);
+    for (var name in ATTRIBUTE_NAME_SYNONYMS)
+        names.push(name);
+    this.attribute_names = name;
 };
 
 Builder.prototype = {
@@ -211,12 +219,8 @@ Builder.prototype = {
 	
 	add_attribute: function (name, value) {
 		print('builder: add attribute ' + name + ", " + value);
-		if (this.call.ATTRIBUTE_SYNONYMS[name])
-			name = this.call.ATTRIBUTE_SYNONYMS[name];
-		for (var i = this.call.ATTRIBUTE_NAMES.length;
-			 this.call.ATTRIBUTE_NAMES[--i] != name; )
-			if (i < 0)
-				return "invalid attribute name";
+		if (ATTRIBUTE_NAME_SYNONYMS[name])
+			name = ATTRIBUTE_NAME_SYNONYMS[name];
 		this.add_attribute_helper(name, value);
 	},
 	
@@ -240,9 +244,9 @@ Model.prototype = {
 		var rules = this.rules[name];
 		if (!rules)
 			rules = this.rules[name] = [];
-		var rule = new Rule(name);
-		rules.push(rule);
-		return rule;
+		var r = new Rule(name);
+		rules.push(r);
+		return r;
 	},
 	to_s: function (name) {
 		var s = '';
@@ -265,9 +269,9 @@ var Rule = function (name) {
 
 Rule.prototype = {
 	addCall: function (name) {
-		var call = new Call(name);
-		this.calls.push(call);
-		return call;
+		var c = new Call(name);
+		this.calls.push(c);
+		return c;
 	},
 	to_s: function () {
 		var s = this.name + " {";
@@ -279,9 +283,69 @@ Rule.prototype = {
 	}
 };
 
+// translate rotate scale skew reflect
+var ATTRIBUTE_NAMES = 'x y r scale sx sy skew skx sky'.split(' ');
+var ATTRIBUTE_NAME_SYNONYMS = {s: 'scale'};
+
 var Call = function (name) {
 	this.name = name;
 	this.attributes = [];
+};
+
+Call.prototype = {
+	setAttributeList: function (attrs) {
+		this.attributes = attrs
+	},
+	
+	setAttributeSet: function (attrs) {
+		var names = this.ATTRIBUTE_NAMES;
+		var list = [];
+		for (var i = 0; i < names.length; i++) {
+			var name = names[i];
+			if (attrs[name])
+				list.push([name, attrs[name]]);
+		}
+		this.attributes = list;
+	},
+	to_s: function () {
+		if (!this.attributes.length) return this.name + " {}";
+		var s = this.name + " [";
+		for (var i = 0; i < this.attributes.length; i++) {
+			if (i > 0) s += ' ';
+			s += this.attributes[i][0] + ' ' + this.attributes[i][1];
+		}
+		return s + "]";
+	}
+};
+
+Call.prototype = {
+	// translate rotate scale skew reflect
+	ATTRIBUTE_NAMES: 'x y r scale sx sy skew skx sky'.split(' '),
+	ATTRIBUTE_SYNONYMS: {s: 'scale'},
+	
+	setAttributeList: function (attrs) {
+		this.attributes = attrs
+	},
+	
+	setAttributeSet: function (attrs) {
+		var names = this.ATTRIBUTE_NAMES;
+		var list = [];
+		for (var i = 0; i < names.length; i++) {
+			var name = names[i];
+			if (attrs[name])
+				list.push([name, attrs[name]]);
+		}
+		this.attributes = list;
+	},
+	to_s: function () {
+		if (!this.attributes.length) return this.name + " {}";
+		var s = this.name + " [";
+		for (var i = 0; i < this.attributes.length; i++) {
+			if (i > 0) s += ' ';
+			s += this.attributes[i][0] + ' ' + this.attributes[i][1];
+		}
+		return s + "]";
+	}
 };
 
 Call.prototype = {
@@ -315,16 +379,14 @@ Call.prototype = {
 };
 
 function parse(string, mode) {
-	var model = new Model;
-	var msg = lex(string, new Parser(new Builder(model)));
+	var m = new Model;
+	var msg = lex(string, new Parser(new Builder(m)));
 	if (msg) print(msg);
-	if (!mode) print(model.to_s());
-	var context = new Context(model);
-	if (mode=='draw') model.draw(context);
+	if (!mode) print(m.to_s());
+	var cxt = new Context(m);
+	if (mode=='draw') m.draw(cxt);
 }
 
-function draw(string) {parse(string, 'draw')}
-
-load("drawing.js")
-parse("startrule line rule line {\nTRIANGLE {s 2 3}\n}");
-//parse("rule line {\nTRIANGLE [s 1 3]\nTRIANGLE [s 1 2 r 180]\n}");
+function draw(string) {
+    return parse(string, 'draw')
+}
