@@ -1,9 +1,13 @@
 /*
-TODO:
+Tests:
+- blank lines
+
+Corners:
 - tabs
 - EOF
 - invalid attribute name
 - "s 1 s 2 3"
+- ignore leading //
  */
 
 var EOF = -1;
@@ -14,7 +18,8 @@ function lex(text, parser) {
 	for (var i = 0; i < lines.length; i++) {
 		var words = lines[i].split(" ");
 		while (words.length && !words[0]) words.shift();
-		if (words.length && words[0].charAt(0)=='#') continue;
+		if (words[0].charAt(0)=='#') continue;
+		if (words[0].slice(0,2)=='//') continue;
 		while (words.length) {
 			var word = words.shift();
 			if (!word.length) continue;
@@ -35,7 +40,7 @@ function lex(text, parser) {
 
 var Parser = function (builder) {
 	this.builder = builder;
-	this.initialize();
+	this.set_initial_state();
 };
 
 Parser.prototype = {
@@ -68,14 +73,20 @@ Parser.prototype = {
 		}
 	},
 	
-	initialize: function () {
-		this.expect('rule', this.rule);
-	},
-	
 	expect: function () {
 		this.transitions = {};
 		for (var i = 0; i < arguments.length; i += 2)
 			this.transitions[arguments[i]] = arguments[i+1];
+	},
+	
+	set_initial_state: function () {
+		this.expect('rule', this.rule,
+					'startrule', function () {
+						this.expect('string', function (name) {
+										this.builder.startshape(name);
+										this.set_initial_state();
+									})
+							});
 	},
 	
 	rule: function () {
@@ -121,7 +132,7 @@ Parser.prototype = {
 	},
 
 	rule_body_transitions: {
-		'}': function () {this.initialize()},
+		'}': function () {this.set_initial_state()},
 		'string': function (s) {this.rule_body(s)}
 	}
 	
@@ -132,24 +143,29 @@ var Builder = function (model) {
 };
 
 Builder.prototype = {
+	startshape: function (name) {
+		print('builder: startshape ' + name);
+		this.model.startName = name;
+	},
+	
 	start_rule: function (name) {
-		print('builder: set rule name = ' + name);
+		print('builder: rule ' + name);
 		this.rule = this.model.makeRule(name);
 	},
 	
 	start_child: function (name) {
-		print('builder: start child = ' + name);
+		print('builder: child ' + name);
 		this.call = this.rule.addCall(name);
 	},
 	
 	start_attribute_set: function () {
-		print('builder: start attribute set');
+		print('builder: attribute set');
 		this.attributeSet = {};
 		this.set_attribute_handlers(this.attribute_handlers.set);
 	},
 	
 	start_attribute_list: function () {
-		print('builder: start attribute list');
+		print('builder: attribute list');
 		this.attributeList = [];
 		this.set_attribute_handlers(this.attribute_handlers.list);
 	},
@@ -235,6 +251,8 @@ Model.prototype = {
 				if (s) s += "\n";
 				s += this.rules[name][i].to_s();
 			}
+		if (this.startName)
+			s = "startshape " + this.startName + "\n" + s;
 		return s;
 	}
 };
@@ -301,7 +319,9 @@ function parse(string) {
 	var msg = lex(string, new Parser(new Builder(model)));
 	if (msg) print(msg);
 	print(model.to_s());
+	//model.draw(new Context);
 }
 
-parse("rule line {\nTRIANGLE {s 2 3}\n}");
+//#include "drawing.js"
+parse("startrule foo rule line {\nTRIANGLE {s 2 3}\n}");
 //parse("rule line {\nTRIANGLE [s 1 3]\nTRIANGLE [s 1 2 r 180]\n}");
