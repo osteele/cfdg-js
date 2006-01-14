@@ -312,16 +312,19 @@ Call.prototype = {
 		}
 		return s + "]";
 	}
-}
+};
 
-function parse(string) {
+function parse(string, mode) {
 	var model = new Model;
 	var msg = lex(string, new Parser(new Builder(model)));
 	if (msg) print(msg);
-	print(model.to_s());
-	//model.draw(new Context);
+	if (!mode) print(model.to_s());
+	var context = new Context(model);
+	if (mode=='draw') model.draw(context);
 }
 
-//#include "drawing.js"
-parse("startrule foo rule line {\nTRIANGLE {s 2 3}\n}");
+function draw(string) {parse(string, 'draw')}
+
+load("drawing.js")
+parse("startrule line rule line {\nTRIANGLE {s 2 3}\n}");
 //parse("rule line {\nTRIANGLE [s 1 3]\nTRIANGLE [s 1 2 r 180]\n}");
