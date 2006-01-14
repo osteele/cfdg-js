@@ -36,14 +36,14 @@ var Parser = function (builder) {
 Parser.prototype = {
 	receive: function (word) {
 		//print(word);
-		var fn = this.state[word];
-		if (!fn) fn = this.state[typeof word];
+		var fn = this.transitions[word];
+		if (!fn) fn = this.transitions[typeof word];
 		if (!fn) {
-			//for (var p in this.state)
-			//	print("" + p + " -> " + this.state[p]);
+			//for (var p in this.transitions)
+			//	print("" + p + " -> " + this.transitions[p]);
 			var msg = "Expected one of: ";
 			var sep = '';
-			for (var key in this.state) {
+			for (var key in this.transitions) {
 				msg += sep + key;
 				sep = ', ';
 			}
@@ -53,7 +53,7 @@ Parser.prototype = {
 			this._fn = fn;
 			this._fn(word);
 		} else {
-			this.state = fn;
+			this.transitions = fn;
 		}
 	},
 	
@@ -62,80 +62,199 @@ Parser.prototype = {
 	},
 	
 	expect: function () {
-		this.state = {};
+		this.transitions = {};
 		for (var i = 0; i < arguments.length; i += 2)
-			this.state[arguments[i]] = arguments[i+1];
+			this.transitions[arguments[i]] = arguments[i+1];
 	},
 	
 	rule: function () {
-		this.builder.start_rule();
 		this.expect(
 			'string', function (s) {
-				this.builder.set_rule_name(s);
-				this.expect('{', this.rule_children_state);
+				this.builder.start_rule(s);
+				this.expect('{', this.rule_body_transitions);
 			})
 	},
 	
 	handle_child: function (s) {
 		this.builder.start_child(s);
-		var attributes = {'}': this.rule_children_state};
+		var attributes = {'}': this.rule_body_transitions};
 		for (var i in this.builder.attribute_names)
 			attributes[this.builder.attribute_names[i]] = this.handle_attr_name;
-		this.expect('{', function () {this.builder.start_set();
-						this.state = attributes},
-					'[', function () {this.builder.start_list();
-						this.state = attributes});
+		this.expect('{', function () {this.builder.start_attribute_set();
+						this.transitions = attributes},
+					'[', function () {this.builder.start_attribute_list();
+						this.transitions = attributes});
 	},
 	
 	handle_attr_name: function (name) {
 		this.expect('string', function (value) {
 						this.builder.set_attribute(name, value);
-						this.state = rule_children_state;
+						this.transitions = rule_body_transitions;
 					});
 	},
 
-	rule_children_state: {
+	rule_body_transitions: {
 		'}': function () {this.initialize()},
 		'string': function (s) {this.handle_child(s)}
 	}
 	
 };
 
-var Builder = function () {
-	this.rules = [];
+var Builder = function (model) {
+	this.model = model;
 };
 
 Builder.prototype = {
-	start_rule: function () {
-		print('builder: start rule');
-		this.rule = {children: []};
-		this.rules.push(this.rule);
-	},
-	
-	set_rule_name: function (name) {
+	start_rule: function (name) {
 		print('builder: set rule name = ' + name);
-		this.rule.name = name;
+		this.rule = this.model.makeRule(name);
 	},
 	
 	start_child: function (name) {
 		print('builder: start child = ' + name);
-		this.child = {name: name};
-		this.rule.children.push(this.child);
+		this.call = this.rule.addCall(name);
 	},
 	
-	start_set: function () {
+	start_attribute_set: function () {
 		print('builder: start attribute set');
-		this.child.attrs = {};
+		this.attributeSet = {};
+		this.set_attribute_handlers(this.attribute_handlers.set);
 	},
 	
-	start_list: function () {
+	start_attribute_list: function () {
 		print('builder: start attribute list');
-		this.child.attrs = [];
+		this.attributeSet = null;
+		this.set_attribute_handlers(this.attribute_handlers.list);
+	},
+	
+	set_attribute_handlers: function (table) {
+		for (var key in table)
+			this[key] = table[key];
+	},
+	
+	attribute_handlers: {
+		set: {
+			add_attribute: function (name, value) {
+				this.lastAttributeName = name;
+				this.attributeSet[name] = value;
+			},
+			
+			pop_attribute_value: function (name) {
+				var value = this.attributeSet[name];
+				delete this.attributeSet[name];
+				return value;
+			},
+			
+			end_attributes: function () {
+				this.call.setAttributeSet(this.attributeSet);
+			}
+		},
+		
+		list: {
+			add_attribute: function (name, value) {
+				this.lastAttributeName = name;
+				this.attributeList.push([name, value]);
+			},
+			
+			pop_attribute_value: function (name) {
+				return this.attributeList.pop();
+			},
+			
+			end_attributes: function () {
+				this.call.setAttributeList(this.attributeList);
+			}
+		}
+	},
+	
+	add_attribute_value: function (value) {
+		var name = this.lastAttributeName;
+		if (name != 's')
+			return "The \'" + name + "\' attribute can only have one value";
+		var firstValue = this.pop_attribute_value(name);
+		this.add_attribute('sx', firstValue);
+		this.add_attribute('sy', value);
+	}	
+};
+
+var Model = function () {
+	this.startName = null;
+	this.rules = {};
+};
+
+Model.prototype = {
+	makeRule: function (name) {
+		var rules = this.rules[name];
+		if (!rules)
+			rules = this.rules[name] = [];
+		var rule = new Rule(name);
+		rules.push(rule);
+		return rule;
+	},
+	to_s: function (name) {
+		var s = '';
+		for (var name in this.rules)
+			for (var i = 0; i < this.rules[name].length; i++) {
+				if (s) s += "\n";
+				s += this.rules[name][i].to_s();
+			}
+		return s;
 	}
 };
 
-//print(lex("abc({ }]def]", receiver));
-var builder = new Builder;
-//print(lex("rule section {\n# TRIANGLE\n  line {}\n}", new Parser(builder)));
-print(lex("rule line {\nTRIANGLE [s 1 3]\nTRIANGLE [s 1 2 r 180]\n}", new Parser(builder)))
-print(builder.rules[0]);
+var Rule = function (name) {
+	this.name = name;
+	this.weight = 1.0;
+	this.calls = [];
+};
+
+Rule.prototype = {
+	addCall: function (name) {
+		this.calls.push(new Call(name));
+	},
+	to_s: function () {
+		var s = this.name + " {";
+		for (var i = 0; i < this.calls.length; i++) {
+			s += "\n  " + this.calls[i].to_s();
+		}
+		if (this.calls.length) s+= "\n";
+		return s + "}";
+	}
+};
+
+var Call = function (name) {
+	this.name = name;
+	this.attributes = [];
+};
+
+Call.prototype = {
+	setAttributeList: function (attrs) {this.attributes = attrs},
+	setAttributeSet: function (attrs) {
+		var names = [];
+		var list = [];
+		for (var i = 0; i < names.length; i++) {
+			var name = names[i];
+			if (attr[name])
+				list.push(name, attr[name]);
+		}
+		this.attributes = list;
+	},
+	to_s: function () {
+		if (!this.attributes.length) return this.name + " {}";
+		var s = this.name + " [";
+		for (var i = 0; i < this.attributes.length; i++) {
+			if (i > 0) s += ' ';
+			s += this.attributes[i][0] + ' ' + this.attributes[i][1];
+		}
+		return s + "]";
+	}
+}
+
+function parse(string) {
+	var model = new Model;
+	var msg = lex(string, new Parser(new Builder(model)));
+	if (msg) print(msg);
+	print(model.to_s());
+}
+
+parse("rule line {\nTRIANGLE {}\nTRIANGLE {}\n}");
+//parse("rule line {\nTRIANGLE [s 1 3]\nTRIANGLE [s 1 2 r 180]\n}");
