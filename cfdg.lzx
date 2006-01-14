@@ -1,12 +1,50 @@
-<canvas>
+<canvas layout="axis: y">
   <script src="parser.js"/>
   <script src="drawing.js"/>
+  
+  <hbox width="100%" height="20">
+    <button onclick="doit()">Render</button>
+    <button onclick="parse(sourceField.getText())">Parse</button>
+  </hbox>
+  <hbox width="${parent.height-20}" height="100%">
+  <edittext width="30%" height="100%" id="sourceField"
+            multiline="true">
+rule r0 {
+  SQUARE {sx 1}
+}
+
+rule r0 {
+  TRIANGLE {sx 1}
+}
+  </edittext>
+  <view width="70%" height="100%">
+    <drawview id="dv" height="1" width="1"
+              xscale="${parent.width}" yscale="${parent.height}">
+      <method name="drawPath" args="pts"><![CDATA[
+        beginPath();
+        moveTo(pts[0][0], pts[0][1]);
+        for (var i = 1; i < pts.length; i++)
+          lineTo(pts[i][0], pts[i][1]);
+        fill();
+      ]]></method>
+    </drawview>
+  </view>
+  </hbox>
+  
   <script>
     Shapes = {
-      SQUARE: function () {Debug.write('SQUARE')}
+      SQUARE: function (context) {
+        var pts = context.transform([[-1,-1], [-1,1], [1,1], [1,-1]]);
+        dv.drawPath(pts);
+      },
+      TRIANGLE: function (context) {
+        var pts = context.transform([[-1,1], [-1,-1], [1, 0]]);
+        dv.drawPath(pts);
+      }
     }
     function print(s) {Debug.write(s)}
-    Debug.write('g');
-    draw("rule r0 {SQUARE {}}");
+    //draw("rule r0 {SQUARE {s 0.5}}");
+    function doit() {dv.clear(); draw(sourceField.getText())}
+    //doit();
   </script>
 </canvas>

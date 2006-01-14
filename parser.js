@@ -17,8 +17,16 @@ Corners:
 var EOF = -1;
 var PUNCTUATION = "()[]{};.";
 
-function lex(text, parser) {
+// Flash can't split on regular expressions, or we could split on /\n|\r/
+function splitLines(text) {
 	var lines = text.split("\n");
+    for (var i = 0; i < lines.length; i++)
+        lines.splice.apply(lines, [i, 1].concat(lines[i].split("\r")));
+    return lines;
+}
+
+function lex(text, parser) {
+	var lines = splitLines(text);
 	for (var i = 0; i < lines.length; i++) {
 		var words = lines[i].split(" ");
 		while (words.length && !words[0]) words.shift();
@@ -55,7 +63,7 @@ Parser.prototype = {
 			var c0 = word.charAt(0).toLowerCase();
 			if (('a' <= c0 && c0 <= 'z') || c0 == '_')
 				fn = this.transitions[typeof word];
-			if (('0' <= c0 && c0 <= '9'))
+			if (('0' <= c0 && c0 <= '9') || ".-".indexOf(c0) >= 0)
 				fn = this.transitions['number'];
 		}
 		if (!fn) {

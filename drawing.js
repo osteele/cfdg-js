@@ -11,7 +11,7 @@ Corners:
 var Context = function (model) {
 	this.model = model;
 	this.cache = {};
-	this.m = [[1,0,0],[0,1,0]];
+	this.m = [[.5,0,.5],[0,.5,.5]];
 };
 
 Context.prototype = {
