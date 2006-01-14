@@ -1,8 +1,11 @@
-/* TODO:
+/*
+TODO:
 - tabs
+- EOF
  */
 
-PUNCTUATION = "()[]{}";
+var EOF = -1;
+var PUNCTUATION = "()[]{};.";
 
 function lex(text, parser) {
 	var lines = text.split("\n");
@@ -25,7 +28,7 @@ function lex(text, parser) {
 			if (value) return "Syntax error at \'" + word + "\' on line " + (i+1) + ": " + value;
 		}
 	}
-	parser.receive(-1);
+	parser.receive(EOF);
 }
 
 var Parser = function (builder) {
@@ -37,7 +40,11 @@ Parser.prototype = {
 	receive: function (word) {
 		//print(word);
 		var fn = this.transitions[word];
-		if (!fn) fn = this.transitions[typeof word];
+		if (!fn && word != EOF) {
+			var c0 = word.charAt(0).toLowerCase();
+			if (('a' <= c0 && c0 <= 'z') || c0 == '_')
+				fn = this.transitions[typeof word];
+		}
 		if (!fn) {
 			//for (var p in this.transitions)
 			//	print("" + p + " -> " + this.transitions[p]);
@@ -75,18 +82,28 @@ Parser.prototype = {
 			})
 	},
 	
-	handle_child: function (s) {
+	rule_body: function (s) {
 		this.builder.start_child(s);
-		var attributes = {'}': this.rule_body_transitions};
+		//var attributes = {'}': this.rule_body_transitions};
 		for (var i in this.builder.attribute_names)
 			attributes[this.builder.attribute_names[i]] = this.handle_attr_name;
-		this.expect('{', function () {this.builder.start_attribute_set();
-						this.transitions = attributes},
-					'[', function () {this.builder.start_attribute_list();
-						this.transitions = attributes});
+		this.expect('{', function () {
+						this.builder.start_attribute_set();
+						this.end_punctuation = '}';
+						this.expect_attribute_name();
+					},
+					'[', function () {
+						this.builder.start_attribute_list();
+						this.end_punctuation = ']';
+						this.expect_attribute_name()});
 	},
 	
-	handle_attr_name: function (name) {
+	expect_attribute_name: function () {
+		this.expect('string', this.attribute_name,
+					this.end_punctuation, this.rule_body_transitions);
+	},
+	
+	attribute_name: function (name) {
 		this.expect('string', function (value) {
 						this.builder.set_attribute(name, value);
 						this.transitions = rule_body_transitions;
@@ -95,7 +112,7 @@ Parser.prototype = {
 
 	rule_body_transitions: {
 		'}': function () {this.initialize()},
-		'string': function (s) {this.handle_child(s)}
+		'string': function (s) {this.rule_body(s)}
 	}
 	
 };
@@ -256,5 +273,5 @@ function parse(string) {
 	print(model.to_s());
 }
 
-parse("rule line {\nTRIANGLE {}\nTRIANGLE {}\n}");
+parse("rule line {\nTRIANGLE []bar{}\n}");
 //parse("rule line {\nTRIANGLE [s 1 3]\nTRIANGLE [s 1 2 r 180]\n}");
