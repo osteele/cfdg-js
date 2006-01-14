@@ -101,14 +101,14 @@ var Shapes = {
             angle += theta/2;
             pts.push([Math.cos(angle), Math.sin(angle)]);
         }
-		context.path("CIRCLE", context.transform(pts));
+		context.path("CIRCLE", context.transform(pts), true);
 	},
 	SQUARE: function (context) {
 		var pts = context.transform([[-1,-1], [-1,1], [1,1], [1,-1]]);
 		context.path("SQUARE", pts);
 	},
 	TRIANGLE: function (context) {
-		var pts = context.transform([[-1,1], [-1,-1], [1, 0]]);
+		var pts = context.transform([[-1,1], [1,1], [0, -1]]);
 		context.path("TRIANGLE", pts);
 	}
 }

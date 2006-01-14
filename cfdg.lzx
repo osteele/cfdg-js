@@ -35,23 +35,41 @@
         this.setAttribute('xscale', s);
         this.setAttribute('yscale', s);
       ]]></method>
+      <method name="drawCurve" args="pts"><![CDATA[
+        beginPath();
+        moveTo(pts[0][0], pts[0][1]);
+        for (var i = 1; i < pts.length; i+=2) {
+          var cx = pts[i][0], cy = pts[i][1];
+          var x = pts[i+1][0], y = pts[i+1][1];
+          this.xmax = Math.max(this.xmax, cx);
+          this.ymax = Math.max(this.ymax, cy);
+          this.xmax = Math.max(this.xmax, x);
+          this.ymax = Math.max(this.ymax, y);
+          quadraticCurveTo(cx, cy, x, y);
+        }
+        var s = Math.min(this.parent.width / this.xmax, this.parent.height / this.ymax);
+        this.setAttribute('xscale', s);
+        this.setAttribute('yscale', s);
+      ]]></method>
     </drawview>
   </view>
   </hbox>
   
   <script>
     function print(s) {Debug.write.call(Debug, arguments)}
-    Context.prototype.path = function (msg, pts) {
+    Context.prototype.path = function (msg, pts, curve) {
       Debug.write(msg, pts);
-      dv.drawPath(pts)
+      dv.drawCurve(pts);
+      //if (curve) dv.drawCurve(pts); else dv.drawPath(pts);
     };
     function doit() {
       dv.reset();
       var msg = draw(sourceField.getText());
       errorField.setText(msg||'')
     }
-    var s = "rule r0 {\n  SQUARE {sx 1}\n}\nrule r0 {\n  TRIANGLE {sx 1}\n}";
-    //sourceField.setText(s);
+  </script>
+  
+  <script>
     doit();
   </script>
 </canvas>
