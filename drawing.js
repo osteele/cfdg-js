@@ -11,7 +11,7 @@ Corners:
 var Context = function (model) {
 	this.model = model;
 	this.cache = {};
-	this.m = [[.5,0,.5],[0,.5,.5]];
+	this.m = [[1,0,0],[0,-1,0]];
     this.brightness = 1;
 };
 
@@ -19,13 +19,17 @@ Context.prototype = {
 	clone: function () {
 		var clone = new Context(this.model);
 		clone.cache = this.cache;
-		clone.m = this.m;
+        clone.brightness = this.brightness;
+        clone.m = [];
+        for (var i = 0; i < this.m.length; i++)
+            clone.m.push([].concat(this.m[i]));
 		return clone;
 	},
 	invoke: function (name) {
 		this.model.draw(this, name);
 	},
     path: function (message, points) {
+        if (message == 'CIRCLE') points = points[0]+'...';
         print(message, points);
     },
 	transform: function (points) {

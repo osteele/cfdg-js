@@ -1,0 +1,23 @@
+Basic functionality:
+- fix sizes
+- add colors
+- rotation
+- real circles (at large sizes)
+
+Infinity:
+- size cut-off
+- loop detection
+
+Web:
+- save
+- view gallery
+- email
+- share
+- PDF
+
+Polish:
+- inline syntax errors
+- About
+
+Frills:
+- auto-color

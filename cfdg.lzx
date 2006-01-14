@@ -8,33 +8,50 @@
     <button onclick="errorField.setText(parse(sourceField.getText()))">Parse</button>
   </hbox>
   <text width="100%" height="20" id="errorField"/>
-  <hbox width="${parent.height-40}" height="100%">
+  <hbox width="100%" height="${parent.height-40}">
   <edittext width="30%" height="100%" id="sourceField"
-            multiline="true"/>
-  <view width="100%" height="100%">
-    <drawview id="dv" height="1" width="1"
-              xscale="${parent.width}" yscale="${parent.height}">
+            multiline="true">
+    <pre><include href="sample.cfdg" type="text"/></pre>
+  </edittext>
+  <view width="70%" height="100%">
+    <drawview id="dv" width="100%" height="100%">
+      <method name="reset">
+        clear();
+        this.xmax = 1;
+        this.ymax = 1;
+      </method>
       <method name="drawPath" args="pts"><![CDATA[
         beginPath();
         moveTo(pts[0][0], pts[0][1]);
-        for (var i = 1; i < pts.length; i++)
-          lineTo(pts[i][0], pts[i][1]);
+        for (var i = 1; i < pts.length; i++) {
+          var x = pts[i][0], y = pts[i][1];
+          lineTo(x, y);
+          this.xmax = Math.max(this.xmax, x);
+          this.ymax = Math.max(this.ymax, y);
+        }
         fill();
+        var s = Math.min(this.parent.width / this.xmax, this.parent.height / this.ymax);
+        print(this.parent.width, this.parent.height, this.xmax, this.ymax);
+        this.setAttribute('xscale', s);
+        this.setAttribute('yscale', s);
       ]]></method>
     </drawview>
   </view>
   </hbox>
   
   <script>
-    function print(s) {Debug.write(s)}
-    Context.prototype.path = function (msg, pts) {dv.drawPath(pts)};
+    function print(s) {Debug.write.call(Debug, arguments)}
+    Context.prototype.path = function (msg, pts) {
+      Debug.write(msg, pts);
+      dv.drawPath(pts)
+    };
     function doit() {
-      dv.clear();
+      dv.reset();
       var msg = draw(sourceField.getText());
       errorField.setText(msg||'')
     }
     var s = "rule r0 {\n  SQUARE {sx 1}\n}\nrule r0 {\n  TRIANGLE {sx 1}\n}";
-    sourceField.setText(s);
+    //sourceField.setText(s);
     doit();
   </script>
 </canvas>
