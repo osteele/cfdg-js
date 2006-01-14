@@ -1,4 +1,5 @@
 <canvas layout="axis: y">
+  <script src="model.js"/>
   <script src="parser.js"/>
   <script src="drawing.js"/>
   
@@ -32,7 +33,7 @@
       var msg = draw(sourceField.getText());
       errorField.setText(msg||'')
     }
-    var s = "rule r0 {\n  SQUARE {sx 1}\n}rule r0 {\n  TRIANGLE {sx 1}\n}";
+    var s = "rule r0 {\n  SQUARE {sx 1}\n}\nrule r0 {\n  TRIANGLE {sx 1}\n}";
     sourceField.setText(s);
     doit();
   </script>
