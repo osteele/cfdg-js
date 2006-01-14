@@ -12,6 +12,7 @@ var Context = function (model) {
 	this.model = model;
 	this.cache = {};
 	this.m = [[.5,0,.5],[0,.5,.5]];
+    this.brightness = 1;
 };
 
 Context.prototype = {
@@ -22,7 +23,7 @@ Context.prototype = {
 		return clone;
 	},
 	invoke: function (name) {
-		this.model.draw(context, name);
+		this.model.draw(this, name);
 	},
     path: function (message, points) {
         print(message, points);
@@ -39,6 +40,8 @@ Context.prototype = {
 		}
 		return result;
 	},
+    set_x: function (dx) {this.m[0][2] += dx},
+    set_y: function (dy) {this.m[1][2] += dy},
 	set_sx: function (sx) {
 		var mx = this.m[0];
 		mx[0] *= sx;
@@ -51,37 +54,20 @@ Context.prototype = {
 		my[1] *= sy;
 		my[2] *= sy;
 	},
-	set_scale: function (s) {
+	set_size: function (s) {
 		this.set_sx(s);
 		this.set_sy(s);
 	},
-	set_r: function (r) {
+	set_rotate: function (r) {
 		var m = this.m;
-		
-	}
+        
+	},
+    set_brightness: function (b) {this.brightness = b}
 };
 
 Model.prototype.draw = function (context, name) {
 	if (!name) name = this.startName;
-	if (!name) for (name in this.rules); // choose the last rule
-	var rules = this.rules[name];
-	this.choose(rules).draw(context);
-};
-
-Model.prototype.choose = function (rules) {
-	if (rules.length == 1) return rules[0];
-	var sum = rules._sum;
-	if (!sum) {
-		sum = 0;
-		for (var i = 0; i < rules.length; i++)
-			sum += rules[i].weight;
-		rules._sum = sum;
-	}
-	var r = Math.random() * sum;
-	for (var i = 0; i < rules.length; i++)
-		if ((r -= rules[i].weight) <= 0)
-			return rules[i];
-    print('no choice from ' + rules.length + ' with weight ' + sum);
+    this.choose(name).draw(context);
 };
 
 Rule.prototype.draw = function (context) {
@@ -102,10 +88,16 @@ Call.prototype.draw = function (context) {
 
 var Shapes = {
 	CIRCLE: function (context) {
-		var pts = context.transform([[0,0]]);
-		var m = context.m;
-		var r = Math.sqrt(Math.abs(m[0][0]*m[1][1]-m[0][1]*m[1][0]));
-		print("CIRCLE: " + pts+', r='+r);
+		var pts = [[1, 0]];
+        var angle = 0;
+        var theta = Math.PI/4;
+        for (var i = 0; i < 8; i++) {
+            angle += theta/2;
+            pts.push([Math.cos(angle), Math.sin(angle)]);
+            angle += theta/2;
+            pts.push([Math.cos(angle), Math.sin(angle)]);
+        }
+		context.path("CIRCLE", context.transform(pts));
 	},
 	SQUARE: function (context) {
 		var pts = context.transform([[-1,-1], [-1,1], [1,1], [1,-1]]);

@@ -1,4 +1,4 @@
-<canvas layout="axis: y">
+ <canvas layout="axis: y">
   <script src="model.js"/>
   <script src="parser.js"/>
   <script src="drawing.js"/>

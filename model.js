@@ -1,3 +1,7 @@
+// translate rotate scale skew reflect
+var ATTRIBUTE_NAMES = 'x y rotate size sx sy skew brightness'.split(' ');
+var ATTRIBUTE_NAME_SYNONYMS = {s: 'size', r: 'rotate', b: 'brightness'};
+
 var Model = function () {
 	this.startName = null;
 	this.rules = {};
@@ -5,6 +9,7 @@ var Model = function () {
 
 Model.prototype = {
 	makeRule: function (name) {
+        if (!this.startName) this.startName = name;
 		var rules = this.rules[name];
 		if (!rules) {
 			rules = this.rules[name] = [];
@@ -14,6 +19,7 @@ Model.prototype = {
 		rules.push(r);
 		return r;
 	},
+    
 	to_s: function (name) {
 		var s = '';
 		for (var name in this.rules)
@@ -24,7 +30,24 @@ Model.prototype = {
 		if (this.startName)
 			s = "startshape " + this.startName + "\n" + s;
 		return s;
-	}
+	},
+
+    choose: function (name) {
+        rules = this.rules[name];
+        if (rules.length == 1) return rules[0];
+        var sum = rules._sum;
+        if (!sum) {
+            sum = 0;
+            for (var i = 0; i < rules.length; i++)
+                sum += rules[i].weight;
+            rules._sum = sum;
+        }
+        var r = Math.random() * sum;
+        for (var i = 0; i < rules.length; i++)
+            if ((r -= rules[i].weight) <= 0)
+                return rules[i];
+        print('no choice from ' + rules.length + ' with weight ' + sum);
+    }
 };
 
 var Rule = function (name) {
@@ -51,10 +74,6 @@ Rule.prototype = {
 		return s + "}";
 	}
 };
-
-// translate rotate scale skew reflect
-var ATTRIBUTE_NAMES = 'x y r scale sx sy skew skx sky'.split(' ');
-var ATTRIBUTE_NAME_SYNONYMS = {s: 'scale'};
 
 var Call = function (name) {
 	this.name = name;

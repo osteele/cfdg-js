@@ -18,18 +18,21 @@ var EOF = -1;
 var PUNCTUATION = "()[]{};.";
 
 // Flash can't split on regular expressions, or we could split on /\n|\r/
-function splitLines(text) {
-	var lines = text.split("\n");
+function splitSplit(text, a, b) {
+	var lines = text.split(a);
     for (var i = 0; i < lines.length; i++)
-        lines.splice.apply(lines, [i, 1].concat(lines[i].split("\r")));
+        lines.splice.apply(lines, [i, 1].concat(lines[i].split(b)));
     return lines;
 }
 
+// Same with whitespace
+
 function lex(text, parser) {
-	var lines = splitLines(text);
+	var lines = splitSplit(text, "\r", "\n");
 	for (var i = 0; i < lines.length; i++) {
-		var words = lines[i].split(" ");
+		var words = splitSplit(lines[i], " ", "\t");
 		while (words.length && !words[0]) words.shift();
+        if (!words.length) continue;
 		if (words[0].charAt(0)=='#') continue;
 		if (words[0].slice(0,2)=='//') continue;
 		while (words.length) {
@@ -250,155 +253,6 @@ Builder.prototype = {
 		this.add_attribute('sx', firstValue);
 		this.add_attribute('sy', value);
 	}	
-};
-
-var Model = function () {
-	this.startName = null;
-	this.rules = {};
-};
-
-Model.prototype = {
-	makeRule: function (name) {
-		var rules = this.rules[name];
-		if (!rules) {
-			rules = this.rules[name] = [];
-            rules._sum = null;
-        }
-		var r = new Rule(name);
-		rules.push(r);
-		return r;
-	},
-	to_s: function (name) {
-		var s = '';
-		for (var name in this.rules)
-			for (var i = 0; i < this.rules[name].length; i++) {
-				if (s) s += "\n";
-				s += this.rules[name][i].to_s();
-			}
-		if (this.startName)
-			s = "startshape " + this.startName + "\n" + s;
-		return s;
-	}
-};
-
-var Rule = function (name) {
-	this.name = name;
-	this.weight = 1.0;
-	this.calls = [];
-};
-
-Rule.prototype = {
-	addCall: function (name) {
-		var c = new Call(name);
-		this.calls.push(c);
-		return c;
-	},
-    
-	to_s: function () {
-		var s = this.name;
-        if (this.weight != 1.0) s += ' ' + this.weight;
-        s += " {";
-		for (var i = 0; i < this.calls.length; i++) {
-			s += "\n  " + this.calls[i].to_s();
-		}
-		if (this.calls.length) s+= "\n";
-		return s + "}";
-	}
-};
-
-// translate rotate scale skew reflect
-var ATTRIBUTE_NAMES = 'x y r scale sx sy skew skx sky'.split(' ');
-var ATTRIBUTE_NAME_SYNONYMS = {s: 'scale'};
-
-var Call = function (name) {
-	this.name = name;
-	this.attributes = [];
-};
-
-Call.prototype = {
-	setAttributeList: function (attrs) {
-		this.attributes = attrs
-	},
-	
-	setAttributeSet: function (attrs) {
-		var names = this.ATTRIBUTE_NAMES;
-		var list = [];
-		for (var i = 0; i < names.length; i++) {
-			var name = names[i];
-			if (attrs[name])
-				list.push([name, attrs[name]]);
-		}
-		this.attributes = list;
-	},
-	to_s: function () {
-		if (!this.attributes.length) return this.name + " {}";
-		var s = this.name + " [";
-		for (var i = 0; i < this.attributes.length; i++) {
-			if (i > 0) s += ' ';
-			s += this.attributes[i][0] + ' ' + this.attributes[i][1];
-		}
-		return s + "]";
-	}
-};
-
-Call.prototype = {
-	// translate rotate scale skew reflect
-	ATTRIBUTE_NAMES: 'x y r scale sx sy skew skx sky'.split(' '),
-	ATTRIBUTE_SYNONYMS: {s: 'scale'},
-	
-	setAttributeList: function (attrs) {
-		this.attributes = attrs
-	},
-	
-	setAttributeSet: function (attrs) {
-		var names = this.ATTRIBUTE_NAMES;
-		var list = [];
-		for (var i = 0; i < names.length; i++) {
-			var name = names[i];
-			if (attrs[name])
-				list.push([name, attrs[name]]);
-		}
-		this.attributes = list;
-	},
-	to_s: function () {
-		if (!this.attributes.length) return this.name + " {}";
-		var s = this.name + " [";
-		for (var i = 0; i < this.attributes.length; i++) {
-			if (i > 0) s += ' ';
-			s += this.attributes[i][0] + ' ' + this.attributes[i][1];
-		}
-		return s + "]";
-	}
-};
-
-Call.prototype = {
-	// translate rotate scale skew reflect
-	ATTRIBUTE_NAMES: 'x y r scale sx sy skew skx sky'.split(' '),
-	ATTRIBUTE_SYNONYMS: {s: 'scale'},
-	
-	setAttributeList: function (attrs) {
-		this.attributes = attrs
-	},
-	
-	setAttributeSet: function (attrs) {
-		var names = this.ATTRIBUTE_NAMES;
-		var list = [];
-		for (var i = 0; i < names.length; i++) {
-			var name = names[i];
-			if (attrs[name])
-				list.push([name, attrs[name]]);
-		}
-		this.attributes = list;
-	},
-	to_s: function () {
-		if (!this.attributes.length) return this.name + " {}";
-		var s = this.name + " [";
-		for (var i = 0; i < this.attributes.length; i++) {
-			if (i > 0) s += ' ';
-			s += this.attributes[i][0] + ' ' + this.attributes[i][1];
-		}
-		return s + "]";
-	}
 };
 
 function parse(string, mode) {
