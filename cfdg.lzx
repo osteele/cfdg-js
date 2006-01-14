@@ -4,20 +4,13 @@
   
   <hbox width="100%" height="20">
     <button onclick="doit()">Render</button>
-    <button onclick="parse(sourceField.getText())">Parse</button>
+    <button onclick="errorField.setText(parse(sourceField.getText()))">Parse</button>
   </hbox>
-  <hbox width="${parent.height-20}" height="100%">
+  <text width="100%" height="20" id="errorField"/>
+  <hbox width="${parent.height-40}" height="100%">
   <edittext width="30%" height="100%" id="sourceField"
-            multiline="true">
-rule r0 {
-  SQUARE {sx 1}
-}
-
-rule r0 {
-  TRIANGLE {sx 1}
-}
-  </edittext>
-  <view width="70%" height="100%">
+            multiline="true"/>
+  <view width="100%" height="100%">
     <drawview id="dv" height="1" width="1"
               xscale="${parent.width}" yscale="${parent.height}">
       <method name="drawPath" args="pts"><![CDATA[
@@ -32,19 +25,15 @@ rule r0 {
   </hbox>
   
   <script>
-    Shapes = {
-      SQUARE: function (context) {
-        var pts = context.transform([[-1,-1], [-1,1], [1,1], [1,-1]]);
-        dv.drawPath(pts);
-      },
-      TRIANGLE: function (context) {
-        var pts = context.transform([[-1,1], [-1,-1], [1, 0]]);
-        dv.drawPath(pts);
-      }
-    }
     function print(s) {Debug.write(s)}
-    //draw("rule r0 {SQUARE {s 0.5}}");
-    function doit() {dv.clear(); draw(sourceField.getText())}
-    //doit();
+    Context.prototype.path = function (msg, pts) {dv.drawPath(pts)};
+    function doit() {
+      dv.clear();
+      var msg = draw(sourceField.getText());
+      errorField.setText(msg||'')
+    }
+    var s = "rule r0 {\n  SQUARE {sx 1}\n}rule r0 {\n  TRIANGLE {sx 1}\n}";
+    sourceField.setText(s);
+    doit();
   </script>
 </canvas>

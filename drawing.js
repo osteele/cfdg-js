@@ -24,6 +24,9 @@ Context.prototype = {
 	invoke: function (name) {
 		this.model.draw(context, name);
 	},
+    path: function (message, points) {
+        print(message, points);
+    },
 	transform: function (points) {
 		var result = [];
 		var mx = this.m[0];
@@ -70,14 +73,15 @@ Model.prototype.choose = function (rules) {
 	var sum = rules._sum;
 	if (!sum) {
 		sum = 0;
-		for (var i in rules)
+		for (var i = 0; i < rules.length; i++)
 			sum += rules[i].weight;
 		rules._sum = sum;
 	}
 	var r = Math.random() * sum;
-	for (var i in rules)
+	for (var i = 0; i < rules.length; i++)
 		if ((r -= rules[i].weight) <= 0)
 			return rules[i];
+    print('no choice from ' + rules.length + ' with weight ' + sum);
 };
 
 Rule.prototype.draw = function (context) {
@@ -105,10 +109,10 @@ var Shapes = {
 	},
 	SQUARE: function (context) {
 		var pts = context.transform([[-1,-1], [-1,1], [1,1], [1,-1]]);
-		print("SQUARE: " + pts);
+		context.path("SQUARE", pts);
 	},
 	TRIANGLE: function (context) {
 		var pts = context.transform([[-1,1], [-1,-1], [1, 0]]);
-		print("TRIANGLE: " + pts);
+		context.path("TRIANGLE", pts);
 	}
 }

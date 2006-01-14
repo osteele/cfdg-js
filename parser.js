@@ -11,7 +11,7 @@ Corners:
 - EOF
 - invalid attribute name
 - "s 1 s 2 3"
-- ignore leading //
+- "line{TRIANGLE{s"
  */
 
 var EOF = -1;
@@ -63,8 +63,10 @@ Parser.prototype = {
 			var c0 = word.charAt(0).toLowerCase();
 			if (('a' <= c0 && c0 <= 'z') || c0 == '_')
 				fn = this.transitions[typeof word];
-			if (('0' <= c0 && c0 <= '9') || ".-".indexOf(c0) >= 0)
+			if (('0' <= c0 && c0 <= '9') || ".-".indexOf(c0) >= 0) {
 				fn = this.transitions['number'];
+                if (fn) word = Number(word);
+            }
 		}
 		if (!fn) {
 			//for (var p in this.transitions)
@@ -103,14 +105,18 @@ Parser.prototype = {
 	
 	rule: function () {
 		this.expect(
-			'string', function (s) {
-				this.builder.start_rule(s);
-				this.expect('{', this.rule_body_transitions);
+			'string', function (name) {
+				this.builder.start_rule(name);
+				this.expect('{', this.rule_body_transitions,
+                            'number', function (weight) {
+                                this.builder.add_weight(weight);
+                                this.expect('{', this.rule_body_transitions);
+                            });
 			})
 	},
 	
-	rule_body: function (s) {
-		this.builder.start_child(s);
+	rule_body: function (name) {
+		this.builder.start_child(name);
 		for (var i in this.builder.attribute_names)
 			attributes[this.builder.attribute_names[i]] = this.handle_attr_name;
 		this.expect('{', function () {
@@ -160,28 +166,32 @@ var Builder = function (model) {
 
 Builder.prototype = {
 	startshape: function (name) {
-		print('builder: startshape ' + name);
+		//print('builder: startshape ' + name);
 		this.model.startName = name;
 	},
 	
 	start_rule: function (name) {
-		print('builder: rule ' + name);
+		//print('builder: rule ' + name);
 		this.rule = this.model.makeRule(name);
 	},
 	
+    add_weight: function (weight) {
+        this.rule.weight = weight;
+    },
+    
 	start_child: function (name) {
-		print('builder: child ' + name);
+		//print('builder: child ' + name);
 		this.call = this.rule.addCall(name);
 	},
 	
 	start_attribute_set: function () {
-		print('builder: attribute set');
+		//print('builder: attribute set');
 		this.attributeSet = {};
 		this.set_attribute_handlers(this.attribute_handlers.set);
 	},
 	
 	start_attribute_list: function () {
-		print('builder: attribute list');
+		//print('builder: attribute list');
 		this.attributeList = [];
 		this.set_attribute_handlers(this.attribute_handlers.list);
 	},
@@ -226,7 +236,7 @@ Builder.prototype = {
 	},
 	
 	add_attribute: function (name, value) {
-		print('builder: add attribute ' + name + ", " + value);
+		//print('builder: add attribute ' + name + ", " + value);
 		if (ATTRIBUTE_NAME_SYNONYMS[name])
 			name = ATTRIBUTE_NAME_SYNONYMS[name];
 		this.add_attribute_helper(name, value);
@@ -250,8 +260,10 @@ var Model = function () {
 Model.prototype = {
 	makeRule: function (name) {
 		var rules = this.rules[name];
-		if (!rules)
+		if (!rules) {
 			rules = this.rules[name] = [];
+            rules._sum = null;
+        }
 		var r = new Rule(name);
 		rules.push(r);
 		return r;
@@ -281,8 +293,11 @@ Rule.prototype = {
 		this.calls.push(c);
 		return c;
 	},
+    
 	to_s: function () {
-		var s = this.name + " {";
+		var s = this.name;
+        if (this.weight != 1.0) s += ' ' + this.weight;
+        s += " {";
 		for (var i = 0; i < this.calls.length; i++) {
 			s += "\n  " + this.calls[i].to_s();
 		}
@@ -393,6 +408,7 @@ function parse(string, mode) {
 	if (!mode) print(m.to_s());
 	var cxt = new Context(m);
 	if (mode=='draw') m.draw(cxt);
+    return msg;
 }
 
 function draw(string) {
