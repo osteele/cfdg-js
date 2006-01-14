@@ -2,6 +2,8 @@
 TODO:
 - tabs
 - EOF
+- invalid attribute name
+- "s 1 s 2 3"
  */
 
 var EOF = -1;
@@ -25,7 +27,7 @@ function lex(text, parser) {
 				word = word.slice(0, word.length-1);
 			}
 			var value = parser.receive(word);
-			if (value) return "Syntax error at \'" + word + "\' on line " + (i+1) + ": " + value;
+			if (value) return "cfdg: syntax error at \'" + word + "\' on line " + (i+1) + ": " + value;
 		}
 	}
 	parser.receive(EOF);
@@ -44,6 +46,8 @@ Parser.prototype = {
 			var c0 = word.charAt(0).toLowerCase();
 			if (('a' <= c0 && c0 <= 'z') || c0 == '_')
 				fn = this.transitions[typeof word];
+			if (('0' <= c0 && c0 <= '9'))
+				fn = this.transitions['number'];
 		}
 		if (!fn) {
 			//for (var p in this.transitions)
@@ -84,7 +88,6 @@ Parser.prototype = {
 	
 	rule_body: function (s) {
 		this.builder.start_child(s);
-		//var attributes = {'}': this.rule_body_transitions};
 		for (var i in this.builder.attribute_names)
 			attributes[this.builder.attribute_names[i]] = this.handle_attr_name;
 		this.expect('{', function () {
@@ -100,13 +103,20 @@ Parser.prototype = {
 	
 	expect_attribute_name: function () {
 		this.expect('string', this.attribute_name,
-					this.end_punctuation, this.rule_body_transitions);
+					this.end_punctuation, function () {
+						this.builder.end_attributes();
+						this.transitions = this.rule_body_transitions;
+					});
 	},
 	
 	attribute_name: function (name) {
-		this.expect('string', function (value) {
-						this.builder.set_attribute(name, value);
-						this.transitions = rule_body_transitions;
+		this.expect('number', function (value) {
+						this.expect_attribute_name();
+						this.transitions['number'] = function (value) {
+							this.builder.add_attribute_value(value);
+							this.expect_attribute_name();
+						};
+						return this.builder.add_attribute(name, value);
 					});
 	},
 
@@ -140,7 +150,7 @@ Builder.prototype = {
 	
 	start_attribute_list: function () {
 		print('builder: start attribute list');
-		this.attributeSet = null;
+		this.attributeList = [];
 		this.set_attribute_handlers(this.attribute_handlers.list);
 	},
 	
@@ -151,7 +161,7 @@ Builder.prototype = {
 	
 	attribute_handlers: {
 		set: {
-			add_attribute: function (name, value) {
+			add_attribute_helper: function (name, value) {
 				this.lastAttributeName = name;
 				this.attributeSet[name] = value;
 			},
@@ -168,7 +178,7 @@ Builder.prototype = {
 		},
 		
 		list: {
-			add_attribute: function (name, value) {
+			add_attribute_helper: function (name, value) {
 				this.lastAttributeName = name;
 				this.attributeList.push([name, value]);
 			},
@@ -183,9 +193,20 @@ Builder.prototype = {
 		}
 	},
 	
+	add_attribute: function (name, value) {
+		print('builder: add attribute ' + name + ", " + value);
+		if (this.call.ATTRIBUTE_SYNONYMS[name])
+			name = this.call.ATTRIBUTE_SYNONYMS[name];
+		for (var i = this.call.ATTRIBUTE_NAMES.length;
+			 this.call.ATTRIBUTE_NAMES[--i] != name; )
+			if (i < 0)
+				return "invalid attribute name";
+		this.add_attribute_helper(name, value);
+	},
+	
 	add_attribute_value: function (value) {
 		var name = this.lastAttributeName;
-		if (name != 's')
+		if (name != 'scale' && name != 'skew')
 			return "The \'" + name + "\' attribute can only have one value";
 		var firstValue = this.pop_attribute_value(name);
 		this.add_attribute('sx', firstValue);
@@ -226,7 +247,9 @@ var Rule = function (name) {
 
 Rule.prototype = {
 	addCall: function (name) {
-		this.calls.push(new Call(name));
+		var call = new Call(name);
+		this.calls.push(call);
+		return call;
 	},
 	to_s: function () {
 		var s = this.name + " {";
@@ -244,14 +267,21 @@ var Call = function (name) {
 };
 
 Call.prototype = {
-	setAttributeList: function (attrs) {this.attributes = attrs},
+	// translate rotate scale skew reflect
+	ATTRIBUTE_NAMES: 'x y r scale sx sy skew skx sky'.split(' '),
+	ATTRIBUTE_SYNONYMS: {s: 'scale'},
+	
+	setAttributeList: function (attrs) {
+		this.attributes = attrs
+	},
+	
 	setAttributeSet: function (attrs) {
-		var names = [];
+		var names = this.ATTRIBUTE_NAMES;
 		var list = [];
 		for (var i = 0; i < names.length; i++) {
 			var name = names[i];
-			if (attr[name])
-				list.push(name, attr[name]);
+			if (attrs[name])
+				list.push([name, attrs[name]]);
 		}
 		this.attributes = list;
 	},
@@ -273,5 +303,5 @@ function parse(string) {
 	print(model.to_s());
 }
 
-parse("rule line {\nTRIANGLE []bar{}\n}");
+parse("rule line {\nTRIANGLE {s 2 3}\n}");
 //parse("rule line {\nTRIANGLE [s 1 3]\nTRIANGLE [s 1 2 r 180]\n}");
