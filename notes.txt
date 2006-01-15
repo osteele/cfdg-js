@@ -1,12 +1,8 @@
-Work with Margaret:
-- positioning triangle
-- moving boundary
-- implementing rotation
+Agenda:
+- set bounds
+- fix rotation
 
 Basic functionality:
-- fix sizes
-- add colors
-- rotation
 
 Infinity:
 - size cut-off
@@ -19,16 +15,9 @@ Web:
 - share
 - PDF
 
-Optimize:
-- combine paths
-- only use circles at large sizes
-- [[x,y]] vs. [{x: x, y: y}] vs. [x,y]
-- always convert to float
-- inline setAttribute
-- build a Transform for each shape
-- [length] instead of push
-
 Polish:
+- add colors
+- position triangle
 - inline syntax errors
 - About
 - better circles (cf. builtin)
@@ -37,7 +26,15 @@ Frills:
 - auto-color
 
 Literacy:
-- factor Matrix class
 - move boundary updating, if it's not too expensive
 - clean up the sx sy mess
 - clean up the view resizing mess
+
+Optimize:
+- combine paths
+- only use circles at large sizes
+- [[x,y]] vs. [{x: x, y: y}] vs. [x,y]
+- always convert to float
+- inline setAttribute
+- build a Transform for each shape
+- [length] instead of push

@@ -34,6 +34,7 @@ Model.prototype = {
 
     choose: function (name) {
         rules = this.rules[name];
+        if (!rules) {print("No rule named " + name); return}
         if (rules.length == 1) return rules[0];
         var sum = rules._sum;
         if (!sum) {

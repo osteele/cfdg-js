@@ -13,14 +13,28 @@
             multiline="true">
     <pre><include href="sample.cfdg" type="text"/></pre>
   </edittext>
-  <view width="70%" height="100%">
-    <view width="100%" height="100%">
+  <view width="70%" height="100%" opacity="0.5">
     <drawview id="dv" width="100%" height="100%" stretches="both">
       <method name="reset">
         clear();
-        this.xmin = this.ymin = 10;
-        this.xmax = this.ymax = 0;
+        this.xmin = this.ymin = Infinity;
+        this.xmax = this.ymax = -Infinity;
+        this.fillStyle = 0;
       </method>
+      <method name="setBounds" args="xmin, ymin, xmax, ymax"><![CDATA[
+        if (xmin == this.xmin && ymin == this.ymin &&
+            xmax == this.xmax && ymax == this.ymax) return;
+        Debug.write('bounds', xmin, ymin, xmax, ymax);
+        this.xmin = xmin; this.ymin = ymin;
+        this.xmax = xmax; this.ymax = ymax;
+        var max = Math.max(xmax-xmin, ymax-ymin);
+        //parent.setAttribute('x', -xmin);
+        //parent.setAttribute('yoffset', -ymin);
+        this.setAttribute('unstretchedwidth', max);
+        this.setAttribute('unstretchedheight', max);
+        this.setAttribute('width', parent.parent.width);
+        this.setAttribute('height', parent.parent.height);
+      ]]></method>
       <method name="drawPath" args="pts"><![CDATA[
         beginPath();
         var x = pts[0][0];
@@ -39,21 +53,7 @@
           ymax = Math.max(ymax, y);
         }
         fill();
-        if (xmax > this.xmax || ymax > this.ymax ||
-            xmin < this.xmin || ymin < this.ymin)
-          this.updateBounds(xmin, ymin, xmax, ymax);
-      ]]></method>
-      <method name="updateBounds" args="xmin, ymin, xmax, ymax"><![CDATA[
-        this.xmin = xmin; this.ymin = ymin;
-        this.xmax = xmax; this.ymax = ymax;
-        var max = Math.max(xmax-xmin, ymax-ymin);
-        Debug.write('set', xmin, ymin, max);
-        //parent.setAttribute('x', -xmin);
-        //parent.setAttribute('yoffset', -ymin);
-        this.setAttribute('unstretchedwidth', max);
-        this.setAttribute('unstretchedheight', max);
-        this.setAttribute('width', parent.parent.width);
-        this.setAttribute('height', parent.parent.height);
+        this.setBounds(xmin, ymin, xmax, ymax);
       ]]></method>
       <method name="drawCurve" args="pts"><![CDATA[
         beginPath();
@@ -75,24 +75,20 @@
           quadraticCurveTo(cx, cy, x, y);
         }
         fill();
-        if (xmax > this.xmax || ymax > this.ymax ||
-            xmin < this.xmin || ymin < this.ymin)
-          this.updateBounds(xmin, ymin, xmax, ymax);
+        this.setBounds(xmin, ymin, xmax, ymax);
       ]]></method>
     </drawview>
-    </view>
   </view>
   </hbox>
   
   <script>
     function print(s) {Debug.write.call(Debug, arguments)}
-    Context.prototype.path = function (msg, pts, curve) {
+    Graphics.prototype.drawPath = function (msg, pts, curve) {
       Debug.write(msg, pts);
       if (curve) dv.drawCurve(pts); else dv.drawPath(pts);
     };
-    Context.prototype.setHsv = function (h, s, v) {
+    Graphics.prototype.setHsv = function (h, s, v) {
       var c = Math.floor(255 * v);
-      Debug.write('rgb', c);
       dv.fillStyle = 0x010101 * c;
     }
     function doit() {

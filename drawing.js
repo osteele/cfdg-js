@@ -1,45 +1,46 @@
-/*
-Features:
-- transformed circles
-
-Corners:
-- no rules
-- invalid name
- */
-
-// Also acts as a  facade for the matrix
 var Context = function (model) {
 	this.model = model;
-	this.cache = {};
 	this.transform = new Transform;
+    this.graphics = new Graphics;
     this.brightness = 1;
+	this.cache = {};
 };
 
 Context.prototype = {
 	clone: function () {
 		var clone = new Context(this.model);
-		clone.cache = this.cache;
-        clone.brightness = this.brightness;
         clone.transform = this.transform.clone();
+        clone.graphics = this.graphics;
+        clone.brightness = this.brightness;
+		clone.cache = this.cache;
 		return clone;
 	},
 	invoke: function (name) {
 		this.model.draw(this, name);
 	},
-    path: function (message, points) {
-        if (message == 'CIRCLE') points = points[0]+'...';
-        print(message, points);
+    drawPath: function (name, points, isCurve) {
+        var points = this.transform.transformPoints(points);
+		this.graphics.drawPath("CIRCLE", points, isCurve);
     },
     transform: function (points) {return this.transform.transform(points)},
-    set_x: function (dx) {this.transform.translate(dx, 0)},
-    set_y: function (dy) {this.transform.translate(0, dy)},
-	set_sx: function (sx) {this.transform.scale(sx, 0)},
-    set_sy: function (sy) {this.transform.scale(0, sy)},
-	set_size: function (s) {this.transform.scale(s, s)},
-	set_rotate: function (r) {this.transform.rotate(r*Math.PI/180)},
+    set_x: function (dx) {this.transform.pretranslate(dx, 0)},
+    set_y: function (dy) {this.transform.pretranslate(0, dy)},
+	set_sx: function (sx) {this.transform.prescale(sx, 0)},
+    set_sy: function (sy) {this.transform.prescale(0, sy)},
+	set_size: function (s) {this.transform.prescale(s, s)},
+	set_rotate: function (r) {this.transform.prerotate(r*Math.PI/180)},
     set_brightness: function (b) {
         this.brightness = b;
-        this.setHsv(1, 0, b);
+        this.graphics.setHsv(1, 0, b);
+    }
+};
+
+function Graphics() {}
+
+Graphics.prototype = {
+    drawPath: function (message, points) {
+        if (message == 'CIRCLE') points = points[0]+'...';
+        print(message, points);
     },
     setHsv: function (h, s, v) {}
 };
@@ -57,8 +58,7 @@ Transform.prototype = {
         return clone;
     },
     
-	transform: function (points) {
-        print(this.m);
+	transformPoints: function (points) {
 		var result = [];
 		var mx = this.m[0];
 		var my = this.m[1];
@@ -71,7 +71,7 @@ Transform.prototype = {
 		return result;
 	},
     
-    scale: function(sx, sy) {
+    prescale: function(sx, sy) {
 		var m = this.m;
 		m[0][0] *= sx;
 		m[1][0] *= sx;
@@ -79,24 +79,33 @@ Transform.prototype = {
 		m[1][1] *= sy;
 	},
     
-    translate: function (dx, dy) {
+    pretranslate: function (dx, dy) {
         var m = this.m;
         m[0][2] += m[0][0]*dx+m[0][1]*dy;
         m[1][2] += m[1][0]*dx+m[1][1]*dy;
     },
     
-    rotate: function (theta) {
-        var cos = Math.cos(theta);
-        var sin = Math.sin(theta);
-        for (var i = 0; i < 2; i++) {
-            var m = this.m[i];
-            var a = m[0];
-            var b = m[1];
-            m[0] = sin*a + cos*b;
-            m[1] = cos*a - sin*b;
-            //print(m);
-        }
-	}
+    prerotate: function (theta) {
+        var t = new Transform;
+        var m = t.m;
+        m[0][0] = m[1][1] = Math.cos(theta);
+        m[0][1] = -(m[1][0] = Math.sin(theta));
+        this.premultiply(t);
+    },
+    
+    premultiply: function (a) {
+        var b = a.clone();
+        var m = this.m;
+        var ma = a.m;
+        var mb = b.m;
+        for (var i = 0; i < 2; i++)
+            for (var j = 0; j < 2; j++) {
+                var sum = ma[i][0]*mb[0][j];
+                sum += ma[i][1]*mb[1][j];
+                sum += ma[i][2]*mb[2][j];
+                m[i][j] = sum;
+            }
+    }
 };
 
 Model.prototype.draw = function (context, name) {
@@ -132,14 +141,14 @@ var Shapes = {
             angle += theta/2;
             pts.push([Math.cos(angle)/2, Math.sin(angle)/2]);
         }
-		context.path("CIRCLE", context.transform.transform(pts), true);
+		context.drawPath("CIRCLE", pts, true);
 	},
 	SQUARE: function (context) {
-		var pts = context.transform.transform([[-.5,-.5], [-.5,.5], [.5,.5], [.5,-.5]]);
-		context.path("SQUARE", pts);
+		var pts = [[-.5,-.5], [-.5,.5], [.5,.5], [.5,-.5]];
+		context.drawPath("SQUARE", pts);
 	},
 	TRIANGLE: function (context) {
-		var pts = context.transform.transform([[-.5,.5], [.5,.5], [0, -.5]]);
-		context.path("TRIANGLE", pts);
+		var pts = [[-.5,.5], [.5,.5], [0, -.5]];
+		context.drawPath("TRIANGLE", pts);
 	}
 }
