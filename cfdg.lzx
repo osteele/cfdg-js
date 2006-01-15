@@ -28,12 +28,13 @@
         this.xmin = xmin; this.ymin = ymin;
         this.xmax = xmax; this.ymax = ymax;
         var max = Math.max(xmax-xmin, ymax-ymin);
-        //parent.setAttribute('x', -xmin);
-        //parent.setAttribute('yoffset', -ymin);
+        Debug.write(xmin, this.width, max, -xmin*this.width/max);
+        parent.setAttribute('x', -xmin*this.width/max);
+        parent.setAttribute('y', -ymin*this.height/max);
         this.setAttribute('unstretchedwidth', max);
         this.setAttribute('unstretchedheight', max);
-        this.setAttribute('width', parent.parent.width);
-        this.setAttribute('height', parent.parent.height);
+        this.setAttribute('width', parent.width);
+        this.setAttribute('height', parent.height);
       ]]></method>
       <method name="drawPath" args="pts"><![CDATA[
         beginPath();

@@ -20,7 +20,7 @@ Context.prototype = {
 	},
     drawPath: function (name, points, isCurve) {
         var points = this.transform.transformPoints(points);
-		this.graphics.drawPath("CIRCLE", points, isCurve);
+		this.graphics.drawPath(name, points, isCurve);
     },
     transform: function (points) {return this.transform.transform(points)},
     set_x: function (dx) {this.transform.pretranslate(dx, 0)},
@@ -110,7 +110,8 @@ Transform.prototype = {
 
 Model.prototype.draw = function (context, name) {
 	if (!name) name = this.startName;
-    this.choose(name).draw(context);
+    var rule = this.choose(name);
+    rule && rule.draw(context);
 };
 
 Rule.prototype.draw = function (context) {

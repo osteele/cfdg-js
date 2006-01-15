@@ -15,7 +15,7 @@ Corners:
  */
 
 var EOF = -1;
-var PUNCTUATION = "()[]{};.";
+var PUNCTUATION = "()[]{};";
 
 // Flash can't split on regular expressions, or we could split on /\n|\r/
 function splitSplit(text, a, b) {
