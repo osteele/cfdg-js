@@ -11,7 +11,7 @@ Corners:
 var Context = function (model) {
 	this.model = model;
 	this.cache = {};
-	this.m = [[1,0,0],[0,-1,0]];
+	this.transform = new Transform;
     this.brightness = 1;
 };
 
@@ -32,6 +32,25 @@ Context.prototype = {
         if (message == 'CIRCLE') points = points[0]+'...';
         print(message, points);
     },
+    transform: function (points) {return this.transform.transform(points)},
+    set_x: function (dx) {this.transform.translate(dx, 0)},
+    set_y: function (dy) {this.transform.translate(0, dy)},
+	set_sx: function (sx) {this.transform.scale(sx, 0)},
+    set_sy: function (sy) {this.transform.scale(0, sy)},
+	set_size: function (s) {this.transform.scale(s, s)},
+	set_rotate: function (r) {this.transform.rotate(r*Path.PI/180)},
+    set_brightness: function (b) {
+        this.brightness = b;
+        this.setHsv(1, 0, b);
+    },
+    setHsv: function (h, s, v) {}
+};
+
+Transform = function () {
+    this.m = [[1,0,0],[0,1,0],[0,0,1]];
+};
+
+Transform.prototype = {
 	transform: function (points) {
 		var result = [];
 		var mx = this.m[0];
@@ -44,29 +63,32 @@ Context.prototype = {
 		}
 		return result;
 	},
-    set_x: function (dx) {this.m[0][2] += dx},
-    set_y: function (dy) {this.m[1][2] += dy},
-	set_sx: function (sx) {
-		var mx = this.m[0];
-		mx[0] *= sx;
-		mx[1] *= sx;
-		mx[2] *= sx;
-	},
-	set_sy: function (sy) {
-		var my = this.m[1];
-		my[0] *= sy;
-		my[1] *= sy;
-		my[2] *= sy;
-	},
-	set_size: function (s) {
-		this.set_sx(s);
-		this.set_sy(s);
-	},
-	set_rotate: function (r) {
+    
+    scale: function(sx, sy) {
 		var m = this.m;
-        
+		m[0][0] *= sx;
+		m[1][0] *= sx;
+		m[0][1] *= sy;
+		m[1][1] *= sy;
 	},
-    set_brightness: function (b) {this.brightness = b}
+    
+    translate: function (dx, dy) {
+        var m = this.m;
+        m[0][2] += m[0][0]*dx+m[0][1]*dy;
+        m[1][2] += m[1][0]*dx+m[1][1]*dy;
+    },
+    
+    rotate: function (theta) {
+        var cos = Math.cos(theta);
+        var sin = Math.sin(theta);
+        for (var i = 0; i < 2; i++) {
+            var m = this.m[0];
+            var a = m[0];
+            var b = m[1];
+            m[0] = cos*a - sin*b;
+            m[1] = sin*a + cos*b;
+        }
+	}
 };
 
 Model.prototype.draw = function (context, name) {
@@ -92,23 +114,24 @@ Call.prototype.draw = function (context) {
 
 var Shapes = {
 	CIRCLE: function (context) {
-		var pts = [[1, 0]];
-        var angle = 0;
+		var pts = [[.5, 0]];
         var theta = Math.PI/4;
+        var rctl = 0.5/Math.cos(theta/2);
+        var angle = 0;
         for (var i = 0; i < 8; i++) {
             angle += theta/2;
-            pts.push([Math.cos(angle), Math.sin(angle)]);
+            pts.push([rctl*Math.cos(angle), rctl*Math.sin(angle)]);
             angle += theta/2;
-            pts.push([Math.cos(angle), Math.sin(angle)]);
+            pts.push([Math.cos(angle)/2, Math.sin(angle)/2]);
         }
 		context.path("CIRCLE", context.transform(pts), true);
 	},
 	SQUARE: function (context) {
-		var pts = context.transform([[-1,-1], [-1,1], [1,1], [1,-1]]);
+		var pts = context.transform([[-.5,-.5], [-.5,.5], [.5,.5], [.5,-.5]]);
 		context.path("SQUARE", pts);
 	},
 	TRIANGLE: function (context) {
-		var pts = context.transform([[-1,1], [1,1], [0, -1]]);
+		var pts = context.transform([[-.5,.5], [.5,.5], [0, -.5]]);
 		context.path("TRIANGLE", pts);
 	}
 }

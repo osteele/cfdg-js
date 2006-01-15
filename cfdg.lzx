@@ -14,44 +14,73 @@
     <pre><include href="sample.cfdg" type="text"/></pre>
   </edittext>
   <view width="70%" height="100%">
-    <drawview id="dv" width="100%" height="100%">
+    <view width="100%" height="100%">
+    <drawview id="dv" width="100%" height="100%" stretches="both">
       <method name="reset">
         clear();
-        this.xmax = 1;
-        this.ymax = 1;
+        this.xmin = this.ymin = 10;
+        this.xmax = this.ymax = 0;
       </method>
       <method name="drawPath" args="pts"><![CDATA[
         beginPath();
-        moveTo(pts[0][0], pts[0][1]);
+        var x = pts[0][0];
+        var y = pts[0][1];
+        var xmin = Math.min(x, this.xmin);
+        var ymin = Math.min(y, this.ymin);
+        var xmax = Math.max(x, this.xmax);
+        var ymax = Math.max(y, this.ymax);
+        moveTo(x, y);
         for (var i = 1; i < pts.length; i++) {
           var x = pts[i][0], y = pts[i][1];
           lineTo(x, y);
-          this.xmax = Math.max(this.xmax, x);
-          this.ymax = Math.max(this.ymax, y);
+          xmin = Math.min(xmin, x);
+          ymin = Math.min(ymin, y);
+          xmax = Math.max(xmax, x);
+          ymax = Math.max(ymax, y);
         }
         fill();
-        var s = Math.min(this.parent.width / this.xmax, this.parent.height / this.ymax);
-        print(this.parent.width, this.parent.height, this.xmax, this.ymax);
-        this.setAttribute('xscale', s);
-        this.setAttribute('yscale', s);
+        if (xmax > this.xmax || ymax > this.ymax ||
+            xmin < this.xmin || ymin < this.ymin)
+          this.updateBounds(xmin, ymin, xmax, ymax);
+      ]]></method>
+      <method name="updateBounds" args="xmin, ymin, xmax, ymax"><![CDATA[
+        this.xmin = xmin; this.ymin = ymin;
+        this.xmax = xmax; this.ymax = ymax;
+        var max = Math.max(xmax-xmin, ymax-ymin);
+        Debug.write('set', xmin, ymin, max);
+        //parent.setAttribute('x', -xmin);
+        //parent.setAttribute('yoffset', -ymin);
+        this.setAttribute('unstretchedwidth', max);
+        this.setAttribute('unstretchedheight', max);
+        this.setAttribute('width', parent.parent.width);
+        this.setAttribute('height', parent.parent.height);
       ]]></method>
       <method name="drawCurve" args="pts"><![CDATA[
         beginPath();
-        moveTo(pts[0][0], pts[0][1]);
+        var x = pts[0][0];
+        var y = pts[0][1];
+        var xmin = Math.min(x, this.xmin);
+        var ymin = Math.min(y, this.ymin);
+        var xmax = Math.max(x, this.xmax);
+        var ymax = Math.max(y, this.ymax);
+        moveTo(x, y);
         for (var i = 1; i < pts.length; i+=2) {
           var cx = pts[i][0], cy = pts[i][1];
           var x = pts[i+1][0], y = pts[i+1][1];
-          this.xmax = Math.max(this.xmax, cx);
-          this.ymax = Math.max(this.ymax, cy);
-          this.xmax = Math.max(this.xmax, x);
-          this.ymax = Math.max(this.ymax, y);
+          // Flash max is dyadic :-(
+          xmin = Math.min(xmin, Math.min(cx, x));
+          ymin = Math.min(ymin, Math.min(cy, y));
+          xmax = Math.max(xmax, Math.max(cx, x));
+          ymax = Math.max(ymax, Math.max(cy, y));
           quadraticCurveTo(cx, cy, x, y);
         }
-        var s = Math.min(this.parent.width / this.xmax, this.parent.height / this.ymax);
-        this.setAttribute('xscale', s);
-        this.setAttribute('yscale', s);
+        fill();
+        if (xmax > this.xmax || ymax > this.ymax ||
+            xmin < this.xmin || ymin < this.ymin)
+          this.updateBounds(xmin, ymin, xmax, ymax);
       ]]></method>
     </drawview>
+    </view>
   </view>
   </hbox>
   
@@ -59,9 +88,13 @@
     function print(s) {Debug.write.call(Debug, arguments)}
     Context.prototype.path = function (msg, pts, curve) {
       Debug.write(msg, pts);
-      dv.drawCurve(pts);
-      //if (curve) dv.drawCurve(pts); else dv.drawPath(pts);
+      if (curve) dv.drawCurve(pts); else dv.drawPath(pts);
     };
+    Context.prototype.setHsv = function (h, s, v) {
+      var c = Math.floor(255 * v);
+      Debug.write('rgb', c);
+      dv.fillStyle = 0x010101 * c;
+    }
     function doit() {
       dv.reset();
       var msg = draw(sourceField.getText());
