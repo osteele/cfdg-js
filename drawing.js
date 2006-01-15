@@ -20,9 +20,7 @@ Context.prototype = {
 		var clone = new Context(this.model);
 		clone.cache = this.cache;
         clone.brightness = this.brightness;
-        clone.m = [];
-        for (var i = 0; i < this.m.length; i++)
-            clone.m.push([].concat(this.m[i]));
+        clone.transform = this.transform.clone();
 		return clone;
 	},
 	invoke: function (name) {
@@ -38,7 +36,7 @@ Context.prototype = {
 	set_sx: function (sx) {this.transform.scale(sx, 0)},
     set_sy: function (sy) {this.transform.scale(0, sy)},
 	set_size: function (s) {this.transform.scale(s, s)},
-	set_rotate: function (r) {this.transform.rotate(r*Path.PI/180)},
+	set_rotate: function (r) {this.transform.rotate(r*Math.PI/180)},
     set_brightness: function (b) {
         this.brightness = b;
         this.setHsv(1, 0, b);
@@ -51,7 +49,16 @@ Transform = function () {
 };
 
 Transform.prototype = {
+    clone: function () {
+        var clone = new Transform;
+        var m = clone.m = [];
+        for (var i = 0; i < this.m.length; i++)
+            m.push([].concat(this.m[i]));
+        return clone;
+    },
+    
 	transform: function (points) {
+        print(this.m);
 		var result = [];
 		var mx = this.m[0];
 		var my = this.m[1];
@@ -82,11 +89,12 @@ Transform.prototype = {
         var cos = Math.cos(theta);
         var sin = Math.sin(theta);
         for (var i = 0; i < 2; i++) {
-            var m = this.m[0];
+            var m = this.m[i];
             var a = m[0];
             var b = m[1];
-            m[0] = cos*a - sin*b;
-            m[1] = sin*a + cos*b;
+            m[0] = sin*a + cos*b;
+            m[1] = cos*a - sin*b;
+            //print(m);
         }
 	}
 };
@@ -124,14 +132,14 @@ var Shapes = {
             angle += theta/2;
             pts.push([Math.cos(angle)/2, Math.sin(angle)/2]);
         }
-		context.path("CIRCLE", context.transform(pts), true);
+		context.path("CIRCLE", context.transform.transform(pts), true);
 	},
 	SQUARE: function (context) {
-		var pts = context.transform([[-.5,-.5], [-.5,.5], [.5,.5], [.5,-.5]]);
+		var pts = context.transform.transform([[-.5,-.5], [-.5,.5], [.5,.5], [.5,-.5]]);
 		context.path("SQUARE", pts);
 	},
 	TRIANGLE: function (context) {
-		var pts = context.transform([[-.5,.5], [.5,.5], [0, -.5]]);
+		var pts = context.transform.transform([[-.5,.5], [.5,.5], [0, -.5]]);
 		context.path("TRIANGLE", pts);
 	}
 }
