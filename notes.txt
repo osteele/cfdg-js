@@ -1,5 +1,6 @@
 Agenda:
-- fix rotation
+- try more examples
+- triangle rotation is off
 - examples menu
 
 Infinity:

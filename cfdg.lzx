@@ -1,4 +1,4 @@
-<canvas layout="axis: y">
+<canvas title="CFDG" layout="axis: y">
   <include href="incubator/roundrectbutton.lzx"/>
   <script src="model.js"/>
   <script src="parser.js"/>
@@ -7,15 +7,15 @@
   <dataset name="ds" ondata="Debug.write(ds.data.childNodes[0].data)"/>
   
   <hbox width="100%" height="20">
-    <roundrectbutton height="20" onclick="doit()">Render</roundrectbutton>
-    <roundrectbutton height="20" onclick="errorField.setText(parse(sourceField.getText()))">Parse</roundrectbutton>
+    <roundrectbutton height="20" onclick="render()">Render</roundrectbutton>
+    <!--roundrectbutton height="20" onclick="errorField.setText(parse(sourceField.getText()))">Parse</roundrectbutton-->
     <roundrectbutton height="20" onclick="Debug.write('fetch'); ds.setSrc('http:simple.cfdgx'); ds.doRequest(); sourceField.setText(ds.data.childNodes[0].data);">Load</roundrectbutton>
   </hbox>
   <text width="100%" height="20" id="errorField"/>
   <hbox width="100%" height="${parent.height-40}">
   <edittext width="30%" height="100%" id="sourceField"
             multiline="true">
-    <pre><include href="triangle.cfdg" type="text"/></pre>
+    <pre><include href="sample.cfdg" type="text"/></pre>
   </edittext>
   <view width="70%" height="100%" opacity="0.5">
     <view stretches="both">
@@ -95,7 +95,7 @@
   </view>
   </hbox>
   
-  <script>
+  <script><![CDATA[
     function print(s) {Debug.write.call(Debug, arguments)}
     Graphics.prototype.drawPath = function (msg, pts, curve) {
       Debug.write(msg, pts);
@@ -104,28 +104,39 @@
     Graphics.prototype.setHsv = function (h, s, v) {
       var c = Math.floor(255 * v);
       dv.fillStyle = 0x010101 * c;
+      if (s == 0) return;
+      h = h / 60.0; // sector 0 to 5
+      var i = Math.floor(h);
+      var f = h - i;
+      var p = v * (1 - s);
+      var q = v * (1 - s * f);
+      var t = v * (1 - s * (1 - f));
+      var rgb = [[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][i];
+      var r = Math.floor(rgb[0]);
+      var g = Math.floor(rgb[1]);
+      var b = Math.floor(rgb[2]);
+      dv.fillStyle = (r<<16)+(g<<8)+b;
     }
-    function doit() {
+    function render() {
       dv.reset();
-      var msg = draw(sourceField.getText());
-      if (msg) msg = "syntax error at \'" + err.token + "\' on line " + err.lineno + ": " + err.message;
-      errorField.setText(msg);
+      var t0 = (new Date).getTime();
+      var m = new Model;
+      var err = lex(sourceField.getText(), new Parser(new Builder(m)));
+      if (err) {
+        var msg = "syntax error at \'" + err.token + "\' on line " + err.lineno + ": " + err.message;
+        errorField.setText(msg);
+        return;
+      }
+      var cxt = new Context(m);
+      Debug.write((new Date).getTime()-t0);
+      t0 = (new Date).getTime();
+      m.draw(cxt);
       dv.resetBounds();
-      return;
-      dv.beginPath();
-      dv.fillStyle = 0xff0000;
-      dv.oval(0, 0, dv.unstretchedheight/10, dv.unstretchedwidth/10);
-      dv.fill();
-      /*dv.beginPath();
-      dv.strokeStyle = 0xff0000;
-      dv.moveTo(0, -100); dv.lineTo(0, 100);
-      dv.moveTo(-100, 0); dv.lineTo(100, 0);
-      dv.stroke();*/
-      errorField.setText(msg||'')
+      Debug.write((new Date).getTime()-t0);
     }
-  </script>
+  ]]></script>
   
   <script>
-    doit();
+    render();
   </script>
 </canvas>
