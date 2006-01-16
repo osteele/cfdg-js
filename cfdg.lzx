@@ -8,7 +8,6 @@
   
   <hbox width="100%" height="20">
     <roundrectbutton height="20" onclick="doit()">Render</roundrectbutton>
-    <roundrectbutton height="20" onclick="dv.resetBounds()">Bounds</roundrectbutton>
     <roundrectbutton height="20" onclick="errorField.setText(parse(sourceField.getText()))">Parse</roundrectbutton>
     <roundrectbutton height="20" onclick="Debug.write('fetch'); ds.setSrc('http:simple.cfdgx'); ds.doRequest(); sourceField.setText(ds.data.childNodes[0].data);">Load</roundrectbutton>
   </hbox>
@@ -31,26 +30,18 @@
       <method name="setBounds" args="xmin, ymin, xmax, ymax"><![CDATA[
         if (xmin == this.xmin && ymin == this.ymin &&
             xmax == this.xmax && ymax == this.ymax) return;
-        Debug.write('bounds', xmin, ymin, xmax, ymax);
+        //Debug.write('bounds', xmin, ymin, xmax, ymax);
         this.xmin = xmin; this.ymin = ymin;
         this.xmax = xmax; this.ymax = ymax;
         var max = Math.max(xmax-xmin, ymax-ymin);
-        max = xmax-xmin;
+        //max = xmax-xmin;
         //Debug.write(xmin, xmax, max);
         parent.setAttribute('unstretchedwidth', max);
         parent.setAttribute('width', parent.parent.width);
         parent.setAttribute('x', -xmin/max*parent.width);
         parent.setAttribute('unstretchedheight', max);
         parent.setAttribute('height', parent.parent.height);
-        return;
-        var max = Math.max(xmax-xmin, ymax-ymin);
-        Debug.write(xmin, this.width, max, -xmin*this.width/max);
-        parent.setAttribute('x', -xmin*this.width/max);
-        parent.setAttribute('y', -ymin*this.height/max);
-        this.setAttribute('unstretchedwidth', max);
-        this.setAttribute('unstretchedheight', max);
-        this.setAttribute('width', parent.width);
-        this.setAttribute('height', parent.height);
+        parent.setAttribute('y', -ymin/max*parent.height);
       ]]></method>
       <method name="resetBounds">
         var xmin = this.xmin;
