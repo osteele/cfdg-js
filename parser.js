@@ -26,6 +26,7 @@ function splitSplit(string, a, b) {
 }
 
 function lex(text, parser) {
+    parser = parser || {receive: function (type, token) {print(type, ": ", token)}};
 	var lines = splitSplit(text, "\r", "\n");
 	for (var i = 0; i < lines.length; i++) {
 		var words = splitSplit(lines[i], " ", "\t");
@@ -253,8 +254,6 @@ Builder.prototype = {
 		this.add_attribute('sy', value);
 	}	
 };
-
-//lex("rule s { SQUARE {x 1} }", {receive: function (token, type) {print(type, ": ", token)}})
 
 function parse(string, mode) {
 	var m = new Model;

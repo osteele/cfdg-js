@@ -1,5 +1,4 @@
 Agenda:
-- set bounds
 - fix rotation
 - examples menu
 

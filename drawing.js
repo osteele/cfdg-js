@@ -28,7 +28,7 @@ Context.prototype = {
 	set_sx: function (sx) {this.transform.prescale(sx, 0)},
     set_sy: function (sy) {this.transform.prescale(0, sy)},
 	set_size: function (s) {this.transform.prescale(s, s)},
-	set_rotate: function (r) {this.transform.prerotate(r*Math.PI/180)},
+	set_rotate: function (r) {this.transform.prerotate(r*Math.PI/180);},
     set_brightness: function (b) {
         this.brightness = b;
         this.graphics.setHsv(1, 0, b);
@@ -66,8 +66,12 @@ Transform.prototype = {
 			var x = points[i][0];
 			var y = points[i][1];
 			result.push([x*mx[0]+y*mx[1]+mx[2],
-						 y*my[0]+y*my[1]+my[2]])
+						 x*my[0]+y*my[1]+my[2]])
 		}
+        /*print('points');
+        print(this.m);
+        print(points);
+        print(result);*/
 		return result;
 	},
     
@@ -94,17 +98,20 @@ Transform.prototype = {
     },
     
     premultiply: function (a) {
-        var b = a.clone();
-        var m = this.m;
+        var b = this.clone();
         var ma = a.m;
         var mb = b.m;
-        for (var i = 0; i < 2; i++)
+        var m = this.m;
+        for (var i = 0; i < 2; i++) {
             for (var j = 0; j < 2; j++) {
                 var sum = ma[i][0]*mb[0][j];
                 sum += ma[i][1]*mb[1][j];
                 sum += ma[i][2]*mb[2][j];
                 m[i][j] = sum;
             }
+        }
+        //print('*');
+        //print 
     }
 };
 
