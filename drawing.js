@@ -2,7 +2,7 @@ var Context = function (model) {
 	this.model = model;
 	this.transform = new Transform;
     this.graphics = new Graphics;
-    this.brightness = 1;
+    this.color = [0,0,1];
 	this.cache = {};
 };
 
@@ -11,7 +11,7 @@ Context.prototype = {
 		var clone = new Context(this.model);
         clone.transform = this.transform.clone();
         clone.graphics = this.graphics;
-        clone.brightness = this.brightness;
+        clone.color = [].concat(this.color);
 		clone.cache = this.cache;
 		return clone;
 	},
@@ -29,9 +29,17 @@ Context.prototype = {
     set_sy: function (sy) {this.transform.prescale(0, sy)},
 	set_size: function (s) {this.transform.prescale(s, s)},
 	set_rotate: function (r) {this.transform.prerotate(r*Math.PI/180);},
+    set_hue: function (h) {
+        this.color[0] = h;
+        this.graphics.setHsv.apply(this, this.color);
+    },
+    set_sat: function (b) {
+        this.color[1] = b;
+        this.graphics.setHsv.apply(this, this.color);
+    },
     set_brightness: function (b) {
-        this.brightness = b;
-        this.graphics.setHsv(1, 0, b);
+        this.color[2] = b;
+        this.graphics.setHsv.apply(this, this.color);
     }
 };
 
