@@ -18,14 +18,12 @@ var EOF = -1;
 var PUNCTUATION = "()[]{};";
 
 // Flash can't split on regular expressions, or we could split on /\n|\r/
-function splitSplit(text, a, b) {
-	var lines = text.split(a);
+function splitSplit(string, a, b) {
+	var lines = string.split(a);
     for (var i = 0; i < lines.length; i++)
         lines.splice.apply(lines, [i, 1].concat(lines[i].split(b)));
     return lines;
 }
-
-// Same with whitespace
 
 function lex(text, parser) {
 	var lines = splitSplit(text, "\r", "\n");
@@ -46,11 +44,21 @@ function lex(text, parser) {
 				words.unshift(word.charAt(word.length-1));
 				word = word.slice(0, word.length-1);
 			}
-			var value = parser.receive(word);
-			if (value) return "cfdg: syntax error at \'" + word + "\' on line " + (i+1) + ": " + value;
+            var type = null;
+            var token = word;
+			var c0 = word.charAt(0).toLowerCase();
+			if (('a' <= c0 && c0 <= 'z') || c0 == '_')
+				type = '<string>';
+			if (('0' <= c0 && c0 <= '9') || ".-".indexOf(c0) >= 0) {
+				type = '<number>';
+                token = Number(word);
+            }
+			var msg = parser.receive(type, token);
+			if (msg) return {message: msg, lineno: i+1, token: token}
 		}
 	}
-	parser.receive(EOF);
+	var msg = parser.receive('<eof>', null);
+    if (msg) return {message: msg, lineno: i, token: 'end of document'};
 }
 
 var Parser = function (builder) {
@@ -59,18 +67,8 @@ var Parser = function (builder) {
 };
 
 Parser.prototype = {
-	receive: function (word) {
-		//print(word);
-		var fn = this.transitions[word];
-		if (!fn && word != EOF) {
-			var c0 = word.charAt(0).toLowerCase();
-			if (('a' <= c0 && c0 <= 'z') || c0 == '_')
-				fn = this.transitions[typeof word];
-			if (('0' <= c0 && c0 <= '9') || ".-".indexOf(c0) >= 0) {
-				fn = this.transitions['number'];
-                if (fn) word = Number(word);
-            }
-		}
+	receive: function (type, token) {
+		var fn = this.transitions[token] || this.transitions[type];
 		if (!fn) {
 			//for (var p in this.transitions)
 			//	print("" + p + " -> " + this.transitions[p]);
@@ -84,7 +82,7 @@ Parser.prototype = {
 		}
 		if (typeof fn == 'function') {
 			this._fn = fn;
-			this._fn(word);
+			this._fn(token);
 		} else {
 			this.transitions = fn;
 		}
@@ -99,7 +97,7 @@ Parser.prototype = {
 	set_initial_state: function () {
 		this.expect('rule', this.rule,
 					'startrule', function () {
-						this.expect('string', function (name) {
+						this.expect('<string>', function (name) {
 										this.builder.startshape(name);
 										this.set_initial_state();
 									})
@@ -108,10 +106,10 @@ Parser.prototype = {
 	
 	rule: function () {
 		this.expect(
-			'string', function (name) {
+			'<string>', function (name) {
 				this.builder.start_rule(name);
 				this.expect('{', this.rule_body_transitions,
-                            'number', function (weight) {
+                            '<number>', function (weight) {
                                 this.builder.add_weight(weight);
                                 this.expect('{', this.rule_body_transitions);
                             });
@@ -134,7 +132,7 @@ Parser.prototype = {
 	},
 	
 	expect_attribute_name: function () {
-		this.expect('string', this.attribute_name,
+		this.expect('<string>', this.attribute_name,
 					this.end_punctuation, function () {
 						this.builder.end_attributes();
 						this.transitions = this.rule_body_transitions;
@@ -142,9 +140,9 @@ Parser.prototype = {
 	},
 	
 	attribute_name: function (name) {
-		this.expect('number', function (value) {
+		this.expect('<number>', function (value) {
 						this.expect_attribute_name();
-						this.transitions['number'] = function (value) {
+						this.transitions['<number>'] = function (value) {
 							this.builder.add_attribute_value(value);
 							this.expect_attribute_name();
 						};
@@ -153,8 +151,9 @@ Parser.prototype = {
 	},
 
 	rule_body_transitions: {
-		'}': function () {this.set_initial_state()},
-		'string': function (s) {this.rule_body(s)}
+		'}': function () {this.expect('rule', this.rule,
+                                      '<eof>', {})},
+		'<string>': function (s) {this.rule_body(s)}
 	}
 	
 };
@@ -255,14 +254,18 @@ Builder.prototype = {
 	}	
 };
 
+//lex("rule s { SQUARE {x 1} }", {receive: function (token, type) {print(type, ": ", token)}})
+
 function parse(string, mode) {
 	var m = new Model;
-	var msg = lex(string, new Parser(new Builder(m)));
-	if (msg) print(msg);
+	var err = lex(string, new Parser(new Builder(m)));
+	if (err) {
+        print("cfdg: syntax error at \'" + err.token + "\' on line " + err.lineno + ": " + err.message);
+        return;
+    }
 	if (!mode) print(m.to_s());
 	var cxt = new Context(m);
 	if (mode=='draw') m.draw(cxt);
-    return msg;
 }
 
 function draw(string) {
