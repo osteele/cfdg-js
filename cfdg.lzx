@@ -1,20 +1,27 @@
- <canvas layout="axis: y">
+<canvas layout="axis: y">
+  <include href="incubator/roundrectbutton.lzx"/>
   <script src="model.js"/>
   <script src="parser.js"/>
   <script src="drawing.js"/>
   
+  <dataset name="ds" ondata="Debug.write(ds.data.childNodes[0].data)"/>
+  
   <hbox width="100%" height="20">
-    <button onclick="doit()">Render</button>
-    <button onclick="errorField.setText(parse(sourceField.getText()))">Parse</button>
+    <roundrectbutton height="20" onclick="doit()">Render</roundrectbutton>
+    <roundrectbutton height="20" onclick="dv.resetBounds()">Bounds</roundrectbutton>
+    <roundrectbutton height="20" onclick="errorField.setText(parse(sourceField.getText()))">Parse</roundrectbutton>
+    <roundrectbutton height="20" onclick="Debug.write('fetch'); ds.setSrc('http:simple.cfdgx'); ds.doRequest(); sourceField.setText(ds.data.childNodes[0].data);">Load</roundrectbutton>
   </hbox>
   <text width="100%" height="20" id="errorField"/>
   <hbox width="100%" height="${parent.height-40}">
   <edittext width="30%" height="100%" id="sourceField"
             multiline="true">
-    <pre><include href="sample.cfdg" type="text"/></pre>
+    <pre><include href="triangle.cfdg" type="text"/></pre>
   </edittext>
   <view width="70%" height="100%" opacity="0.5">
-    <drawview id="dv" width="100%" height="100%" stretches="both">
+    <view stretches="both">
+    <drawview id="dv">
+      <!--  width="100%" height="100%" stretches="both" -->
       <method name="reset">
         clear();
         this.xmin = this.ymin = Infinity;
@@ -28,6 +35,15 @@
         this.xmin = xmin; this.ymin = ymin;
         this.xmax = xmax; this.ymax = ymax;
         var max = Math.max(xmax-xmin, ymax-ymin);
+        max = xmax-xmin;
+        //Debug.write(xmin, xmax, max);
+        parent.setAttribute('unstretchedwidth', max);
+        parent.setAttribute('width', parent.parent.width);
+        parent.setAttribute('x', -xmin/max*parent.width);
+        parent.setAttribute('unstretchedheight', max);
+        parent.setAttribute('height', parent.parent.height);
+        return;
+        var max = Math.max(xmax-xmin, ymax-ymin);
         Debug.write(xmin, this.width, max, -xmin*this.width/max);
         parent.setAttribute('x', -xmin*this.width/max);
         parent.setAttribute('y', -ymin*this.height/max);
@@ -36,6 +52,11 @@
         this.setAttribute('width', parent.width);
         this.setAttribute('height', parent.height);
       ]]></method>
+      <method name="resetBounds">
+        var xmin = this.xmin;
+        this.xmin = 'reset';
+        this.setBounds(xmin, this.ymin, this.xmax, this.ymax);
+      </method>
       <method name="drawPath" args="pts"><![CDATA[
         beginPath();
         var x = pts[0][0];
@@ -79,6 +100,7 @@
         this.setBounds(xmin, ymin, xmax, ymax);
       ]]></method>
     </drawview>
+    </view>
   </view>
   </hbox>
   
@@ -95,6 +117,19 @@
     function doit() {
       dv.reset();
       var msg = draw(sourceField.getText());
+      if (msg) msg = "syntax error at \'" + err.token + "\' on line " + err.lineno + ": " + err.message;
+      errorField.setText(msg);
+      dv.resetBounds();
+      return;
+      dv.beginPath();
+      dv.fillStyle = 0xff0000;
+      dv.oval(0, 0, dv.unstretchedheight/10, dv.unstretchedwidth/10);
+      dv.fill();
+      /*dv.beginPath();
+      dv.strokeStyle = 0xff0000;
+      dv.moveTo(0, -100); dv.lineTo(0, 100);
+      dv.moveTo(-100, 0); dv.lineTo(100, 0);
+      dv.stroke();*/
       errorField.setText(msg||'')
     }
   </script>

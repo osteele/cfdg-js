@@ -149,7 +149,8 @@ var Shapes = {
 		context.drawPath("SQUARE", pts);
 	},
 	TRIANGLE: function (context) {
-		var pts = [[-.5,.5], [.5,.5], [0, -.5]];
+        var dy = -0.5/Math.sqrt(3);
+		var pts = [[-.5,.5+dy], [.5,.5+dy], [0, -.5+dy]];
 		context.drawPath("TRIANGLE", pts);
 	}
 }
