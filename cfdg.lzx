@@ -2,6 +2,7 @@
   <include href="incubator/roundrectbutton.lzx"/>
   <script src="model.js"/>
   <script src="parser.js"/>
+  <script src="graphics.js"/>
   <script src="drawing.js"/>
   
   <dataset name="ds" ondata="Debug.write(ds.data.childNodes[0].data)"/>
