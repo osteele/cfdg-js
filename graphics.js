@@ -39,7 +39,6 @@ Transform.prototype = {
 	},
     
     prescale: function(sx, sy) {
-        print('scale', sx, sy);
 		var m = this.m;
 		m[0][0] *= sx;
 		m[1][0] *= sx;

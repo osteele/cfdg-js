@@ -83,7 +83,7 @@ Parser.prototype = {
 		}
 		if (typeof fn == 'function') {
 			this._fn = fn;
-			this._fn(token);
+			return this._fn(token);
 		} else {
 			this.transitions = fn;
 		}
@@ -144,8 +144,8 @@ Parser.prototype = {
 		this.expect('<number>', function (value) {
 						this.expect_attribute_name();
 						this.transitions['<number>'] = function (value) {
-							this.builder.add_attribute_value(value);
 							this.expect_attribute_name();
+							return this.builder.add_attribute_value(value);
 						};
 						return this.builder.add_attribute(name, value);
 					});
@@ -229,7 +229,7 @@ Builder.prototype = {
 			},
 			
 			pop_attribute_value: function (name) {
-				return this.attributeList.pop();
+				return this.attributeList.pop()[1];
 			},
 			
 			end_attributes: function () {
@@ -242,16 +242,18 @@ Builder.prototype = {
 		//print('builder: add attribute ' + name + ", " + value);
 		if (ATTRIBUTE_NAME_SYNONYMS[name])
 			name = ATTRIBUTE_NAME_SYNONYMS[name];
+        if (ATTRIBUTE_ARITY[name] == 2)
+            value = [value, value];
 		this.add_attribute_helper(name, value);
 	},
 	
 	add_attribute_value: function (value) {
 		var name = this.lastAttributeName;
-		if (name != 'scale' && name != 'skew')
+		if (ATTRIBUTE_ARITY[name] != 2)
 			return "The \'" + name + "\' attribute can only have one value";
-		var firstValue = this.pop_attribute_value(name);
-		this.add_attribute('sx', firstValue);
-		this.add_attribute('sy', value);
+		var vector = this.pop_attribute_value(name);
+		vector[1] = value;
+        this.add_attribute_helper(name, vector);
 	}	
 };
 

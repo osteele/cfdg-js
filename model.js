@@ -1,6 +1,7 @@
 // translate rotate scale skew reflect
 var ATTRIBUTE_NAMES = 'x y rotate size sx sy skew hue sat brightness'.split(' ');
 var ATTRIBUTE_NAME_SYNONYMS = {s: 'size', r: 'rotate', b: 'brightness'};
+var ATTRIBUTE_ARITY = {size: 2}
 
 var Model = function () {
 	this.startName = null;
@@ -108,10 +109,6 @@ Call.prototype = {
 };
 
 Call.prototype = {
-	// translate rotate scale skew reflect
-	ATTRIBUTE_NAMES: 'x y r scale sx sy skew skx sky'.split(' '),
-	ATTRIBUTE_SYNONYMS: {s: 'scale'},
-	
 	setAttributeList: function (attrs) {
 		this.attributes = attrs
 	},

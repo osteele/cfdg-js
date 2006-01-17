@@ -25,9 +25,7 @@ Context.prototype = {
     transform: function (points) {return this.transform.transform(points)},
     set_x: function (dx) {this.transform.pretranslate(dx, 0)},
     set_y: function (dy) {this.transform.pretranslate(0, dy)},
-	set_sx: function (sx) {this.transform.prescale(sx, 0)},
-    set_sy: function (sy) {this.transform.prescale(0, sy)},
-	set_size: function (s) {this.transform.prescale(s, s)},
+	set_size: function (size) {this.transform.prescale(size[0], size[1])},
 	set_rotate: function (r) {this.transform.prerotate(r*Math.PI/180);},
     set_hue: function (h) {
         this.color[0] = h;

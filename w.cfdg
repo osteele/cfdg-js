@@ -1,0 +1,10 @@
+rule W {
+	LINE { r -7 }
+	LINE { r 7 }
+	LINE { x 6 r -7 }
+	LINE { x 6 r 7 }
+}
+
+rule LINE {
+	TRIANGLE [ s 1 30 y 0.26 ]
+}
