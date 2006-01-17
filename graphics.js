@@ -9,7 +9,7 @@ Graphics.prototype = {
 };
 
 Transform = function () {
-    this.m = [[1,0,0],[0,1,0],[0,0,1]];
+    this.m = [[1,0,0],[0,-1,0],[0,0,1]];
 };
 
 Transform.prototype = {

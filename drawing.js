@@ -82,7 +82,7 @@ var Shapes = {
 		context.drawPath("SQUARE", pts);
 	},
 	TRIANGLE: function (context) {
-        var y = .5-0.25/Math.sqrt(3);
+        var y = 0.5/Math.sqrt(3);
 		var pts = [[-.5,y], [.5,y], [0, y-Math.sqrt(3)/2]];
 		context.drawPath("TRIANGLE", pts);
 	}
