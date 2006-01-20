@@ -4,7 +4,7 @@ var Context = function (model) {
     this.graphics = new Graphics;
     this.color = [0,0,0];
 	this.queue = [];
-    this.stats = {rules: 0, countdown: 0, cutoff: .001};
+    this.stats = {rules: 0, countdown: 0, cutoff: .005};
 };
 
 Context.prototype = {
@@ -80,7 +80,7 @@ Call.prototype.draw = function (context) {
 
 var Shapes = {
 	CIRCLE: function (context) {
-		if (Math.abs(context.transform.determinant()) < context.stats.cutoff*10)
+		if (Math.abs(context.transform.determinant()) < context.stats.cutoff*2)
             return this.SQUARE(context);
 		var pts = [[.5, 0]];
         var theta = Math.PI/4;

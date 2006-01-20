@@ -6,16 +6,19 @@
   <script src="graphics.js"/>
   <script src="drawing.js"/>
   
-  <dataset name="ds" ondata="ds.data &amp;&amp; ds.data.childNodes[0].data"/>
+  <node id="appstate">
+    <attribute name="rendering" value="false"/>
+  </node>
   
   <hbox width="100%" height="20">
     <view>
       <roundrectbutton height="20" onclick="render()" visible="${!appstate.rendering}">Render</roundrectbutton>
       <roundrectbutton height="20" onclick="stopRendering()" visible="${appstate.rendering}">Stop</roundrectbutton>
     </view>
-    <!--roundrectbutton height="20" onclick="statusField.setText(parse(sourceField.getText()))">Parse</roundrectbutton-->
-    <!--roundrectbutton height="20" onclick="ds.setSrc('http:simple.cfdgx'); ds.doRequest(); sourceField.setText(ds.data.childNodes[0].data);">Load</roundrectbutton-->
+    <roundrectbutton height="20" onclick="loadDialog.show()">Load</roundrectbutton>
+    <roundrectbutton height="20" onclick="saveDialog.setAttribute('visible', true)">Save</roundrectbutton>
   </hbox>
+  
   <text width="100%" height="20" id="statusField"/>
   <hbox width="100%" height="${parent.height-40}">
     <edittext width="30%" height="100%" id="sourceField"
@@ -29,9 +32,59 @@
     </view>
   </hbox>
   
-  <node id="appstate">
-    <attribute name="rendering" value="false"/>
-  </node>
+  <dataset name="filelistdata" src="http://localhost:3001/file/list"/>
+  <dataset name="fileloaddata" src="http://localhost:3001/file/show"
+           ondata="sourceField.setText(fileloaddata.data.childNodes[0].data)"/>
+  <window id="loadDialog" title="Load"
+          visible="false" closeable="true" layout="axis: vertical"
+          options="ignorelayout" width="200">
+    <method name="show">
+      setAttribute('visible', true);
+      //filelistdata.setSrc("http://localhost:3001/file/list");
+      filelistdata.doRequest();
+    </method>
+    <view height="150">
+      <vbox datapath="filelistdata:/files">
+        <roundrectbutton datapath="file" height="20" text="$path{'@name'}">
+          <method event="onclick">
+            Debug.write(this.text, this.xid);
+            fileloaddata.setSrc('http://localhost:3001/file/show/' + this.xid);
+            fileloaddata.doRequest();
+            loadDialog.setAttribute('visible', false);
+          </method>
+          <attribute name="xid" value="$path{'@id'}"/>
+        </roundrectbutton>
+      </vbox>
+    </view>
+    <!--roundrectbutton height="20" onclick="loadDialog.setVisible(false)">
+      Close
+    </roundrectbutton-->
+  </window>
+  
+  <dataset name="filesaveds" src="http://localhost:3001/file/save"
+           ondata="statusField.setText(filesaveds.data)"/>
+  <window id="saveDialog" title="Save"
+          visible="false"
+          options="ignorelayout" layout="axis: y">
+    <hbox>
+      <text>Name: </text>
+      <edittext id="nameField" width="140"/>
+    </hbox>
+    <hbox>
+      <roundrectbutton height="20" text="Save">
+        <method event="onclick">
+          filesaveds.setQueryType('POST');
+          filesaveds.setQueryParam('name', nameField.getText());
+          filesaveds.setQueryParam('content', sourceField.getText());
+          filesaveds.doRequest();
+          saveDialog.setVisible(false);
+        </method>
+      </roundrectbutton>
+      <roundrectbutton height="20" onclick="saveDialog.setVisible(false)">
+        Cancel
+      </roundrectbutton>
+    </hbox>
+  </window>
   
   <script><![CDATA[
     function print(s) {Debug.write.call(Debug, arguments)}
