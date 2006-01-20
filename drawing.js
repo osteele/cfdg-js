@@ -16,6 +16,7 @@ Context.prototype = {
 		return clone;
 	},
 	invoke: function (name) {
+        if (Math.abs(this.transform.determinant()) < .00001) return;
 		this.model.draw(this, name);
 	},
     drawPath: function (name, points, isCurve) {
@@ -28,7 +29,7 @@ Context.prototype = {
 	set_size: function (size) {this.transform.prescale(size[0], size[1])},
 	set_rotate: function (r) {this.transform.prerotate(r*Math.PI/180);},
     set_hue: function (h) {
-        this.color[0] = h;
+        this.color[0] += h;
         this.graphics.setHsv.apply(this, this.color);
     },
     set_sat: function (b) {
@@ -59,9 +60,8 @@ Call.prototype.draw = function (context) {
     for (var i = 0; i < this.attributes.length; i++)
 		context['set_' + this.attributes[i][0]](this.attributes[i][1]);
 	if (Shapes[this.name])
-		Shapes[this.name](context);
-	else
-		context.invoke(this.name);
+		return Shapes[this.name](context);
+    context.invoke(this.name);
 };
 
 var Shapes = {

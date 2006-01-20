@@ -1,6 +1,6 @@
 Agenda:
 - try more examples
-- scaling is wrong
+- scaling is anisotropic
 - examples menu
 
 Infinity:

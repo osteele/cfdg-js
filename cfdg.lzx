@@ -18,7 +18,7 @@
             multiline="true">
     <pre><include href="sample.cfdg" type="text"/></pre>
   </edittext>
-  <view width="70%" height="100%" opacity="0.8">
+  <view width="70%" height="100%" opacity="1.0">
     <view stretches="both">
     <drawview id="dv">
       <!--  width="100%" height="100%" stretches="both" -->
@@ -112,7 +112,7 @@
       var p = v * (1 - s);
       var q = v * (1 - s * f);
       var t = v * (1 - s * (1 - f));
-      var rgb = [[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][i];
+      var rgb = [[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][i % 6];
       var r = Math.floor(255*rgb[0]);
       var g = Math.floor(255*rgb[1]);
       var b = Math.floor(255*rgb[2]);

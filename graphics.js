@@ -21,6 +21,11 @@ Transform.prototype = {
         return clone;
     },
     
+    determinant: function () {
+        var m = this.m;
+        return m[0][0]*m[1][1]-m[0][1]*m[1][0];
+    },
+
 	transformPoints: function (points) {
 		var result = [];
 		var mx = this.m[0];
