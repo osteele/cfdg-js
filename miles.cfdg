@@ -1,0 +1,23 @@
+startshape tree
+
+rule tree {
+	section {}
+}
+
+rule tree {
+	section {rotate 4}
+}
+
+rule tree {
+	section {rotate -4}
+}
+
+rule tree {
+	section {rotate 30}
+	section {rotate -30}
+}
+
+rule section {
+	CIRCLE {}
+	tree {size 0.90 y 1.6}
+}
