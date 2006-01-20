@@ -1,5 +1,4 @@
 Top:
-- cutoff not working
 - speed
 
 Language features:
@@ -39,9 +38,8 @@ Literacy:
 - clean up the view resizing mess
 
 Optimize:
-- only use circles at large sizes
+- tune the cutoff
 - [[x,y]] vs. [{x: x, y: y}] vs. [x,y]
-- always convert to float
 - inline setAttribute
 - build a Transform for each shape
 - [length] instead of push

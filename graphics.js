@@ -27,19 +27,15 @@ Transform.prototype = {
     },
 
 	transformPoints: function (points) {
-		var result = [];
+		var result = new Array(points.length);
 		var mx = this.m[0];
 		var my = this.m[1];
 		for (var i = 0; i < points.length; i++) {
 			var x = points[i][0];
 			var y = points[i][1];
-			result.push([x*mx[0]+y*mx[1]+mx[2],
-						 x*my[0]+y*my[1]+my[2]])
+			result[i] = [x*mx[0]+y*mx[1]+mx[2],
+                         x*my[0]+y*my[1]+my[2]]
 		}
-        /*print('points');
-        print(this.m);
-        print(points);
-        print(result);*/
 		return result;
 	},
     

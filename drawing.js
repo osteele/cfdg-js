@@ -4,7 +4,7 @@ var Context = function (model) {
     this.graphics = new Graphics;
     this.color = [0,0,0];
 	this.queue = [];
-    this.stats = {rules: 0, countdown: 0, cutoff: .1};
+    this.stats = {rules: 0, countdown: 0, cutoff: .001};
 };
 
 Context.prototype = {
@@ -20,7 +20,7 @@ Context.prototype = {
 	invoke: function (name) {
         if (Math.abs(this.transform.determinant()) < this.stats.cutoff) return;
 		//this.model.draw(this, name);
-        this.queue.push([this, name]);
+        this.queue[this.queue.length] = [this, name];
 	},
     flush: function () {
         while (this.queue.length && --this.stats.countdown > 0) {
@@ -71,7 +71,6 @@ Rule.prototype.draw = function (context) {
 Call.prototype.draw = function (context) {
 	if (this.attributes.length)
 		context = context.clone();
-    //for (var i = this.attributes.length; --i >= 0; )
     for (var i = 0; i < this.attributes.length; i++)
 		context['set_' + this.attributes[i][0]](this.attributes[i][1]);
 	if (Shapes[this.name])

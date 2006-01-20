@@ -76,7 +76,7 @@
       var tm = cxt.transform.m;
       tm[0][0] = tm[1][1] = 20;
       tm[1][1] *= -1;
-      cxt.stats.cutoff *= tm[0][0] * tm[1][1];
+      cxt.stats.cutoff *= Math.abs(tm[0][0] * tm[1][1]);
       //Debug.write((new Date).getTime()-t0);
       t0 = (new Date).getTime();
       m.draw(cxt);
