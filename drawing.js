@@ -2,7 +2,7 @@ var Context = function (model) {
 	this.model = model;
 	this.transform = new Transform;
     this.graphics = new Graphics;
-    this.color = [0,0,1];
+    this.color = [0,1,0];
 	this.queue = [];
     this.stats = {rules: 0, countdown: 0};
 };
@@ -18,7 +18,7 @@ Context.prototype = {
 		return clone;
 	},
 	invoke: function (name) {
-        if (Math.abs(this.transform.determinant()) < .0001) return;
+        if (Math.abs(this.transform.determinant()) < .001) return;
 		//this.model.draw(this, name);
         this.queue.push([this, name]);
 	},
@@ -31,6 +31,7 @@ Context.prototype = {
     },
     drawPath: function (name, points, isCurve) {
         var points = this.transform.transformPoints(points);
+        this.graphics.setHsv.apply(this.graphics, this.color);
 		this.graphics.drawPath(name, points, isCurve);
     },
     transform: function (points) {return this.transform.transform(points)},
@@ -46,15 +47,15 @@ Context.prototype = {
     },
     set_hue: function (h) {
         this.color[0] += h;
-        this.graphics.setHsv.apply(this, this.color);
+        //this.graphics.setHsv.apply(this, this.color);
     },
     set_sat: function (b) {
         this.color[1] = b;
-        this.graphics.setHsv.apply(this, this.color);
+        //this.graphics.setHsv.apply(this, this.color);
     },
     set_brightness: function (b) {
         this.color[2] = b;
-        this.graphics.setHsv.apply(this, this.color);
+        //this.graphics.setHsv.apply(this, this.color);
     }
 };
 
@@ -76,10 +77,8 @@ Call.prototype.draw = function (context) {
     //for (var i = this.attributes.length; --i >= 0; )
     for (var i = 0; i < this.attributes.length; i++)
 		context['set_' + this.attributes[i][0]](this.attributes[i][1]);
-	if (Shapes[this.name]) {
-        context.graphics.setHsv(context.color);
+	if (Shapes[this.name])
 		return Shapes[this.name](context);
-    }
     context.invoke(this.name);
 };
 

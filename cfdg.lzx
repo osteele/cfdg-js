@@ -19,7 +19,7 @@
   <hbox width="100%" height="${parent.height-40}">
   <edittext width="30%" height="100%" id="sourceField"
             multiline="true">
-    <pre><include href="sample.cfdg" type="text"/></pre>
+    <pre><include href="miles.cfdg" type="text"/></pre>
   </edittext>
   <view width="70%" height="100%" opacity="1.0">
     <view stretches="both">
@@ -30,6 +30,7 @@
         this.xmin = this.ymin = Infinity;
         this.xmax = this.ymax = -Infinity;
         this.fillStyle = 0;
+        this.lastHsv = [nil, nil, nil];
       </method>
       <method name="setBounds" args="xmin, ymin, xmax, ymax"><![CDATA[
         if (xmin == this.xmin && ymin == this.ymin &&
@@ -112,6 +113,9 @@
       shapeCount += 1;
     };
     Graphics.prototype.setHsv = function (h, s, v) {
+      var lastHsv = dv.lastHsv;
+      if (lastHsv[0] == h && lastHsv[1] == s && lastHsv[2] == v) return;
+      dv.lastHsv = [h, s, v];
       var c = Math.floor(255 * v);
       dv.fillStyle = 0x010101 * c;
       if (s == 0) return;
@@ -156,7 +160,7 @@
   <method event="onidle" reference="LzIdle">
     if (currentContext) {
       var cxt = currentContext.context;
-      cxt.stats.countdown = 50;
+      cxt.stats.countdown = 25;
       cxt.flush();
       dv.resetBounds();
       var t0 = currentContext.startTime;
@@ -174,8 +178,8 @@
   <script>
     function stopRendering() {
       if (currentContext) {
-        statusField.setText("Stopped at " + shapeCount + " shapes after " + Math.round(((new Date).getTime() - currentContext.startTime)/1000) + ", with " + currentContext.context.queue.length + " expansions remaining.");
-        appstate.setAttribute('rendering', true);
+        statusField.setText("Stopped at " + shapeCount + " shapes after " + Math.round(((new Date).getTime() - currentContext.startTime)/1000) + "s, with " + currentContext.context.queue.length + " expansions remaining.");
+        appstate.setAttribute('rendering', false);
         currentContext = nil;
       }
     }
