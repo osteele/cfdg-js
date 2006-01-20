@@ -1,18 +1,15 @@
 Top:
 - cutoff not working
-- colors
-- scale
-- welcome colors
 - speed
 
 Language features:
 - skew
 - pipe
 - include
+- background
 
 Agenda:
 - try more examples
-- scaling is anisotropic
 - examples menu
 - scrolling text field
 

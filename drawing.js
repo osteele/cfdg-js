@@ -47,15 +47,12 @@ Context.prototype = {
     },
     set_hue: function (h) {
         this.color[0] += h;
-        //this.graphics.setHsv.apply(this, this.color);
     },
     set_sat: function (s) {
-        this.color[1] += s;
-        //this.graphics.setHsv.apply(this, this.color);
+        this.color[1] = s;
     },
     set_brightness: function (b) {
         this.color[2] += b;
-        //this.graphics.setHsv.apply(this, this.color);
     }
 };
 
