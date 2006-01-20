@@ -8,11 +8,14 @@
   <dataset name="ds" ondata="ds.data &amp;&amp; ds.data.childNodes[0].data"/>
   
   <hbox width="100%" height="20">
-    <roundrectbutton height="20" onclick="render()">Render</roundrectbutton>
-    <!--roundrectbutton height="20" onclick="errorField.setText(parse(sourceField.getText()))">Parse</roundrectbutton-->
-    <roundrectbutton height="20" onclick="ds.setSrc('http:simple.cfdgx'); ds.doRequest(); sourceField.setText(ds.data.childNodes[0].data);">Load</roundrectbutton>
+    <view>
+      <roundrectbutton height="20" onclick="render()" visible="${!appstate.rendering}">Render</roundrectbutton>
+      <roundrectbutton height="20" onclick="stopRendering()" visible="${appstate.rendering}">Stop</roundrectbutton>
+    </view>
+    <!--roundrectbutton height="20" onclick="statusField.setText(parse(sourceField.getText()))">Parse</roundrectbutton-->
+    <!--roundrectbutton height="20" onclick="ds.setSrc('http:simple.cfdgx'); ds.doRequest(); sourceField.setText(ds.data.childNodes[0].data);">Load</roundrectbutton-->
   </hbox>
-  <text width="100%" height="20" id="errorField"/>
+  <text width="100%" height="20" id="statusField"/>
   <hbox width="100%" height="${parent.height-40}">
   <edittext width="30%" height="100%" id="sourceField"
             multiline="true">
@@ -96,6 +99,10 @@
   </view>
   </hbox>
   
+  <node id="appstate">
+    <attribute name="rendering" value="false"/>
+  </node>
+  
   <script><![CDATA[
     function print(s) {Debug.write.call(Debug, arguments)}
     var shapeCount;
@@ -129,7 +136,7 @@
       var err = lex(sourceField.getText(), new Parser(new Builder(m)));
       if (err) {
         var msg = "syntax error at \'" + err.token + "\' on line " + err.lineno + ": " + err.message;
-        errorField.setText(msg);
+        statusField.setText(msg);
         return;
       }
       var cxt = new Context(m);
@@ -142,8 +149,8 @@
       currentContext = {context: cxt, startTime: t0};
       dv.resetBounds();
       var t1 = (new Date).getTime();
-      errorField.setText("Rendered " + shapeCount + " shapes in " + (t1-t0) + "ms.");
-      Debug.write((new Date).getTime()-t0);
+      statusField.setText("Rendered " + shapeCount + " shapes in " + (t1-t0) + "ms.");
+      appstate.setAttribute('rendering', true);
     }
   ]]></script>
   <method event="onidle" reference="LzIdle">
@@ -157,8 +164,20 @@
       var msg = "Rendered " + shapeCount + " shapes in " + Math.round((t1-t0)/1000) + "s.";
       if (cxt.queue.length)
         msg += "  " + cxt.queue.length + " expansions remaining."
-      errorField.setText(msg);
-      if (!cxt.queue.length) currentContext = nil;
+      statusField.setText(msg);
+      if (!cxt.queue.length) {
+        appstate.setAttribute('rendering', false);
+        currentContext = nil;
+      }
     }
   </method>
+  <script>
+    function stopRendering() {
+      if (currentContext) {
+        statusField.setText("Stopped at " + shapeCount + " shapes after " + Math.round(((new Date).getTime() - currentContext.startTime)/1000) + ", with " + currentContext.context.queue.length + " expansions remaining.");
+        appstate.setAttribute('rendering', true);
+        currentContext = nil;
+      }
+    }
+  </script>
 </canvas>

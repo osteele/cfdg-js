@@ -1,10 +1,15 @@
+Top:
+- scale
+- welcome colors
+- speed
+
 Agenda:
 - try more examples
 - scaling is anisotropic
 - examples menu
 - scrolling text field
 
-Web:
+Web Features:
 - save
 - view gallery
 - email
@@ -12,17 +17,15 @@ Web:
 - PDF
 
 Polish:
-- add colors
-- position triangle
 - inline syntax errors
-- About
+- copyright
 - better circles (cf. builtin)
 
-Errors:
+Errors for:
 - unknown rules
 - "s 1 2 3"
 
-Frills:
+Features:
 - auto-color
 
 Literacy:

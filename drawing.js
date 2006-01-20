@@ -76,8 +76,10 @@ Call.prototype.draw = function (context) {
     //for (var i = this.attributes.length; --i >= 0; )
     for (var i = 0; i < this.attributes.length; i++)
 		context['set_' + this.attributes[i][0]](this.attributes[i][1]);
-	if (Shapes[this.name])
+	if (Shapes[this.name]) {
+        context.graphics.setHsv(context.color);
 		return Shapes[this.name](context);
+    }
     context.invoke(this.name);
 };
 
