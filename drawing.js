@@ -3,7 +3,8 @@ var Context = function (model) {
 	this.transform = new Transform;
     this.graphics = new Graphics;
     this.color = [0,0,1];
-	this.cache = {};
+	this.queue = [];
+    this.stats = {rules: 0, countdown: 0};
 };
 
 Context.prototype = {
@@ -12,13 +13,22 @@ Context.prototype = {
         clone.transform = this.transform.clone();
         clone.graphics = this.graphics;
         clone.color = [].concat(this.color);
-		clone.cache = this.cache;
+		clone.queue = this.queue;
+        clone.stats = this.stats;
 		return clone;
 	},
 	invoke: function (name) {
-        if (Math.abs(this.transform.determinant()) < .00001) return;
-		this.model.draw(this, name);
+        if (Math.abs(this.transform.determinant()) < .0001) return;
+		//this.model.draw(this, name);
+        this.queue.push([this, name]);
 	},
+    flush: function () {
+        while (this.queue.length && --this.stats.countdown > 0) {
+            var item = this.queue.shift();
+            item[0].model.draw(item[0], item[1]);
+            this.stats.rules += 1;
+        }
+    },
     drawPath: function (name, points, isCurve) {
         var points = this.transform.transformPoints(points);
 		this.graphics.drawPath(name, points, isCurve);
@@ -28,6 +38,12 @@ Context.prototype = {
     set_y: function (dy) {this.transform.pretranslate(0, dy)},
 	set_size: function (size) {this.transform.prescale(size[0], size[1])},
 	set_rotate: function (r) {this.transform.prerotate(r*Math.PI/180);},
+    set_flip: function (r) {
+        r *= Math.PI/180;
+        this.transform.prerotate(-r);
+        this.transform.prescale(1, -1);
+        this.transform.prerotate(r);
+    },
     set_hue: function (h) {
         this.color[0] += h;
         this.graphics.setHsv.apply(this, this.color);
@@ -46,6 +62,7 @@ Model.prototype.draw = function (context, name) {
 	if (!name) name = this.startName;
     var rule = this.choose(name);
     rule && rule.draw(context);
+    context.flush();
 };
 
 Rule.prototype.draw = function (context) {

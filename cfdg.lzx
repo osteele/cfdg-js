@@ -98,9 +98,11 @@
   
   <script><![CDATA[
     function print(s) {Debug.write.call(Debug, arguments)}
+    var shapeCount;
     Graphics.prototype.drawPath = function (msg, pts, curve) {
-      Debug.write(msg, pts);
+      //Debug.write(msg, pts);
       if (curve) dv.drawCurve(pts); else dv.drawPath(pts);
+      shapeCount += 1;
     };
     Graphics.prototype.setHsv = function (h, s, v) {
       var c = Math.floor(255 * v);
@@ -118,8 +120,10 @@
       var b = Math.floor(255*rgb[2]);
       dv.fillStyle = (r<<16)+(g<<8)+b;
     }
+    var currentContext = null;
     function render() {
       dv.reset();
+      shapeCount = 0;
       var t0 = (new Date).getTime();
       var m = new Model;
       var err = lex(sourceField.getText(), new Parser(new Builder(m)));
@@ -135,8 +139,26 @@
       //Debug.write((new Date).getTime()-t0);
       t0 = (new Date).getTime();
       m.draw(cxt);
+      currentContext = {context: cxt, startTime: t0};
       dv.resetBounds();
-      //Debug.write((new Date).getTime()-t0);
+      var t1 = (new Date).getTime();
+      errorField.setText("Rendered " + shapeCount + " shapes in " + (t1-t0) + "ms.");
+      Debug.write((new Date).getTime()-t0);
     }
   ]]></script>
+  <method event="onidle" reference="LzIdle">
+    if (currentContext) {
+      var cxt = currentContext.context;
+      cxt.stats.countdown = 50;
+      cxt.flush();
+      dv.resetBounds();
+      var t0 = currentContext.startTime;
+      var t1 = (new Date).getTime();
+      var msg = "Rendered " + shapeCount + " shapes in " + Math.round((t1-t0)/1000) + "s.";
+      if (cxt.queue.length)
+        msg += "  " + cxt.queue.length + " expansions remaining."
+      errorField.setText(msg);
+      if (!cxt.queue.length) currentContext = nil;
+    }
+  </method>
 </canvas>

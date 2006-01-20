@@ -244,6 +244,10 @@ Builder.prototype = {
 			name = ATTRIBUTE_NAME_SYNONYMS[name];
         if (ATTRIBUTE_ARITY[name] == 2)
             value = [value, value];
+        var found = false;
+        for (var i = 0; i < ATTRIBUTE_NAMES.length; i++)
+            if (ATTRIBUTE_NAMES[i] == name) found = true;
+        if (!found) return "Invalid attribute name: " + name;
 		this.add_attribute_helper(name, value);
 	},
 	

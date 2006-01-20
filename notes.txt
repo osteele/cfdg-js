@@ -2,10 +2,7 @@ Agenda:
 - try more examples
 - scaling is anisotropic
 - examples menu
-
-Infinity:
-- size cut-off
-- loop detection
+- scrolling text field
 
 Web:
 - save
