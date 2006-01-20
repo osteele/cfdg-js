@@ -2,9 +2,9 @@ var Context = function (model) {
 	this.model = model;
 	this.transform = new Transform;
     this.graphics = new Graphics;
-    this.color = [0,1,0];
+    this.color = [0,0,0];
 	this.queue = [];
-    this.stats = {rules: 0, countdown: 0};
+    this.stats = {rules: 0, countdown: 0, cutoff: .1};
 };
 
 Context.prototype = {
@@ -18,7 +18,7 @@ Context.prototype = {
 		return clone;
 	},
 	invoke: function (name) {
-        if (Math.abs(this.transform.determinant()) < .01) return;
+        if (Math.abs(this.transform.determinant()) < this.stats.cutoff) return;
 		//this.model.draw(this, name);
         this.queue.push([this, name]);
 	},
@@ -49,12 +49,12 @@ Context.prototype = {
         this.color[0] += h;
         //this.graphics.setHsv.apply(this, this.color);
     },
-    set_sat: function (b) {
-        this.color[1] = b;
+    set_sat: function (s) {
+        this.color[1] += s;
         //this.graphics.setHsv.apply(this, this.color);
     },
     set_brightness: function (b) {
-        this.color[2] = b;
+        this.color[2] += b;
         //this.graphics.setHsv.apply(this, this.color);
     }
 };
@@ -84,6 +84,8 @@ Call.prototype.draw = function (context) {
 
 var Shapes = {
 	CIRCLE: function (context) {
+		if (Math.abs(context.transform.determinant()) < context.stats.cutoff*10)
+            return this.SQUARE(context);
 		var pts = [[.5, 0]];
         var theta = Math.PI/4;
         var rctl = 0.5/Math.cos(theta/2);

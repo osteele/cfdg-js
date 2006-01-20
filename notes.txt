@@ -1,4 +1,5 @@
 Top:
+- cutoff not working
 - colors
 - scale
 - welcome colors

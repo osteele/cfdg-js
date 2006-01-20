@@ -39,6 +39,7 @@
       shapeCount += 1;
     };
     Graphics.prototype.setHsv = function (h, s, v) {
+    Debug.write(h, s, v);
       var lastHsv = dv.lastHsv;
       if (lastHsv[0] == h && lastHsv[1] == s && lastHsv[2] == v) return;
       dv.lastHsv = [h, s, v];
@@ -55,6 +56,7 @@
       var r = Math.floor(255*rgb[0]);
       var g = Math.floor(255*rgb[1]);
       var b = Math.floor(255*rgb[2]);
+      Debug.write(r, g, b);
       dv.fillStyle = (r<<16)+(g<<8)+b;
     }
     var currentContext = null;
@@ -72,13 +74,14 @@
       var cxt = new Context(m);
       var tm = cxt.transform.m;
       tm[0][0] = tm[1][1] = 20;
-      tm[1][1] *= -1
+      tm[1][1] *= -1;
+      cxt.stats.cutoff *= tm[0][0] * tm[1][1];
       //Debug.write((new Date).getTime()-t0);
       t0 = (new Date).getTime();
       m.draw(cxt);
       dv.resetBounds();      
       dv.endFrame();
-      currentContext = {context: cxt, startTime: t0};
+      currentContext = {context: cxt, startTime: t0, lastBlit: t0};
       var t1 = (new Date).getTime();
       statusField.setText("Rendered " + shapeCount + " shapes in " + (t1-t0) + "ms.");
       appstate.setAttribute('rendering', true);
@@ -87,12 +90,15 @@
   <method event="onidle" reference="LzIdle">
     if (currentContext) {
       var cxt = currentContext.context;
-      cxt.stats.countdown = 25;
+      cxt.stats.countdown = 10;
       cxt.flush();
-      //dv.endFrame();
-      dv.resetBounds();
       var t0 = currentContext.startTime;
       var t1 = (new Date).getTime();
+      if (t1-currentContext.lastBlit > 10000) {
+        dv.endFrame();
+        currentContext.lastBlit = t1;
+      }
+      dv.resetBounds();
       var msg = "Rendered " + shapeCount + " shapes in " + Math.round((t1-t0)/1000) + "s.";
       if (cxt.queue.length)
         msg += "  " + cxt.queue.length + " expansions remaining."
@@ -100,18 +106,18 @@
       if (!cxt.queue.length) {
         dv.endFrame();
         appstate.setAttribute('rendering', false);
-        currentContext = nil;
+        currentContext = null;
       }
     }
   </method>
-  <script>
+  <script><![CDATA[
     function stopRendering() {
       if (currentContext) {
         dv.endFrame();
-        statusField.setText("Stopped at " + shapeCount + " shapes after " + Math.round(((new Date).getTime() - currentContext.startTime)/1000) + "s, with " + currentContext.context.queue.length + " expansions remaining.");
+        statusField.setText("<font color='red'>Stopped rendering</font> at " + shapeCount + " shapes after " + Math.round(((new Date).getTime() - currentContext.startTime)/1000) + "s, with " + currentContext.context.queue.length + " expansions remaining.");
         appstate.setAttribute('rendering', false);
-        currentContext = nil;
+        currentContext = null;
       }
     }
-  </script>
+  ]]></script>
 </canvas>

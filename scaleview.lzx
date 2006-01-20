@@ -7,7 +7,7 @@
         this.xmin = this.ymin = Infinity;
         this.xmax = this.ymax = -Infinity;
         this.fillStyle = 0;
-        this.lastHsv = [nil, nil, nil];
+        this.lastHsv = [null,null,null];
         this.inPath = false;
       </method>
       <method name="setBounds" args="xmin, ymin, xmax, ymax"><![CDATA[
