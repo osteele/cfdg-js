@@ -1,6 +1,6 @@
 Agenda:
 - try more examples
-- triangle rotation is off
+- scaling is wrong
 - examples menu
 
 Infinity:

@@ -80,13 +80,17 @@ Transform.prototype = {
         var m = this.m;
         for (var i = 0; i <= 2; i++) {
             for (var j = 0; j <= 2; j++) {
-                var sum = ma[i][0]*mb[0][j];
-                sum += ma[i][1]*mb[1][j];
-                sum += ma[i][2]*mb[2][j];
+                var sum = mb[i][0]*ma[0][j];
+                sum += mb[i][1]*ma[1][j];
+                sum += mb[i][2]*ma[2][j];
                 m[i][j] = sum;
             }
         }
-        //print('*');
-        //print 
+    },
+    floor: function () {
+        for (var i = 0; i <= 2; i++)
+            for (var j = 0; j <= 2; j++)
+                if (Math.abs(this.m[i][j]) < .01)
+                    this.m[i][j] = 0;
     }
 };

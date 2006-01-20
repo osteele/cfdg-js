@@ -142,8 +142,8 @@ Call.prototype = {
 	setAttributeSet: function (attrs) {
 		var names = ATTRIBUTE_NAMES;
 		var list = [];
-		//for (var i = 0; i < names.length; i++) {
-        for (var i = names.length; --i >= 0; ) {
+		for (var i = 0; i < names.length; i++) {
+            //for (var i = names.length; --i >= 0; ) {
 			var name = names[i];
 			if (attrs[name])
 				list.push([name, attrs[name]]);

@@ -55,7 +55,8 @@ Rule.prototype.draw = function (context) {
 Call.prototype.draw = function (context) {
 	if (this.attributes.length)
 		context = context.clone();
-    for (var i = this.attributes.length; --i >= 0; )
+    //for (var i = this.attributes.length; --i >= 0; )
+    for (var i = 0; i < this.attributes.length; i++)
 		context['set_' + this.attributes[i][0]](this.attributes[i][1]);
 	if (Shapes[this.name])
 		Shapes[this.name](context);
@@ -82,8 +83,8 @@ var Shapes = {
 		context.drawPath("SQUARE", pts);
 	},
 	TRIANGLE: function (context) {
-        var y = 0.5/Math.sqrt(3);
-		var pts = [[-.5,y], [.5,y], [0, y-Math.sqrt(3)/2]];
+        var y = -0.5/Math.sqrt(3);
+		var pts = [[-.5,y], [.5,y], [0, y+Math.sqrt(3)/2]];
 		context.drawPath("TRIANGLE", pts);
 	}
 }
