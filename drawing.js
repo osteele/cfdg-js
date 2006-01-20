@@ -18,7 +18,7 @@ Context.prototype = {
 		return clone;
 	},
 	invoke: function (name) {
-        if (Math.abs(this.transform.determinant()) < .001) return;
+        if (Math.abs(this.transform.determinant()) < .01) return;
 		//this.model.draw(this, name);
         this.queue.push([this, name]);
 	},

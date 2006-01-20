@@ -8,6 +8,7 @@
         this.xmax = this.ymax = -Infinity;
         this.fillStyle = 0;
         this.lastHsv = [nil, nil, nil];
+        this.inPath = false;
       </method>
       <method name="setBounds" args="xmin, ymin, xmax, ymax"><![CDATA[
         if (xmin == this.xmin && ymin == this.ymin &&
@@ -30,8 +31,22 @@
         this.xmin = 'reset';
         this.setBounds(xmin, this.ymin, this.xmax, this.ymax);
       </method>
+      <method name="endFrame">
+        if (this.inPath) {
+          this.fill();
+          this.inPath = false;
+        }
+      </method>
       <method name="drawPath" args="pts"><![CDATA[
-        beginPath();
+        if (this.inPath && this.lastStyle != this.fillStyle) {
+          this.fill();
+          this.inPath = false;
+        }
+        if (!this.inPath) {
+          this.beginPath();
+          this.lastStyle = this.fillStyle;
+          this.inPath = true;
+        }
         var x = pts[0][0];
         var y = pts[0][1];
         var xmin = Math.min(x, this.xmin);
@@ -41,17 +56,25 @@
         moveTo(x, y);
         for (var i = 1; i < pts.length; i++) {
           var x = pts[i][0], y = pts[i][1];
-          lineTo(x, y);
+          this.lineTo(x, y);
           xmin = Math.min(xmin, x);
           ymin = Math.min(ymin, y);
           xmax = Math.max(xmax, x);
           ymax = Math.max(ymax, y);
         }
-        fill();
+        this.endFrame();
         this.setBounds(xmin, ymin, xmax, ymax);
       ]]></method>
       <method name="drawCurve" args="pts"><![CDATA[
-        beginPath();
+        if (this.inPath && this.lastStyle != this.fillStyle) {
+          this.fill();
+          this.inPath = false;
+        }
+        if (!this.inPath) {
+          this.beginPath();
+          this.lastStyle = this.fillStyle;
+          this.inPath = true;
+        }
         var x = pts[0][0];
         var y = pts[0][1];
         var xmin = Math.min(x, this.xmin);
@@ -67,9 +90,9 @@
           ymin = Math.min(ymin, Math.min(cy, y));
           xmax = Math.max(xmax, Math.max(cx, x));
           ymax = Math.max(ymax, Math.max(cy, y));
-          quadraticCurveTo(cx, cy, x, y);
+          this.quadraticCurveTo(cx, cy, x, y);
         }
-        fill();
+        this.endFrame();
         this.setBounds(xmin, ymin, xmax, ymax);
       ]]></method>
     </drawview>

@@ -18,11 +18,12 @@
   </hbox>
   <text width="100%" height="20" id="statusField"/>
   <hbox width="100%" height="${parent.height-40}">
-  <edittext width="30%" height="100%" id="sourceField"
-            multiline="true">
-    <pre><include href="miles.cfdg" type="text"/></pre>
-  </edittext>
-  <scaleview width="70%" height="100%"/>
+    <edittext width="30%" height="100%" id="sourceField"
+              multiline="true">
+      <pre><include href="miles.cfdg" type="text"/></pre>
+    </edittext>
+    <view width="2.5%"/>
+    <scaleview width="65%" height="95%"/>
   </hbox>
   
   <node id="appstate">
@@ -75,8 +76,9 @@
       //Debug.write((new Date).getTime()-t0);
       t0 = (new Date).getTime();
       m.draw(cxt);
+      dv.resetBounds();      
+      dv.endFrame();
       currentContext = {context: cxt, startTime: t0};
-      dv.resetBounds();
       var t1 = (new Date).getTime();
       statusField.setText("Rendered " + shapeCount + " shapes in " + (t1-t0) + "ms.");
       appstate.setAttribute('rendering', true);
@@ -87,6 +89,7 @@
       var cxt = currentContext.context;
       cxt.stats.countdown = 25;
       cxt.flush();
+      //dv.endFrame();
       dv.resetBounds();
       var t0 = currentContext.startTime;
       var t1 = (new Date).getTime();
@@ -95,6 +98,7 @@
         msg += "  " + cxt.queue.length + " expansions remaining."
       statusField.setText(msg);
       if (!cxt.queue.length) {
+        dv.endFrame();
         appstate.setAttribute('rendering', false);
         currentContext = nil;
       }
@@ -103,6 +107,7 @@
   <script>
     function stopRendering() {
       if (currentContext) {
+        dv.endFrame();
         statusField.setText("Stopped at " + shapeCount + " shapes after " + Math.round(((new Date).getTime() - currentContext.startTime)/1000) + "s, with " + currentContext.context.queue.length + " expansions remaining.");
         appstate.setAttribute('rendering', false);
         currentContext = nil;

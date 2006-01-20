@@ -1,7 +1,13 @@
 Top:
+- colors
 - scale
 - welcome colors
 - speed
+
+Language features:
+- skew
+- pipe
+- include
 
 Agenda:
 - try more examples
@@ -20,6 +26,7 @@ Polish:
 - inline syntax errors
 - copyright
 - better circles (cf. builtin)
+- note about 
 
 Errors for:
 - unknown rules
@@ -34,7 +41,6 @@ Literacy:
 - clean up the view resizing mess
 
 Optimize:
-- combine paths
 - only use circles at large sizes
 - [[x,y]] vs. [{x: x, y: y}] vs. [x,y]
 - always convert to float
