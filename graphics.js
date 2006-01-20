@@ -9,7 +9,7 @@ Graphics.prototype = {
 };
 
 Transform = function () {
-    this.m = [[1,0,0],[0,-1,0],[0,0,1]];
+    this.m = [[1,0,0],[0,1,0],[0,0,1]];
 };
 
 Transform.prototype = {
@@ -39,17 +39,30 @@ Transform.prototype = {
 	},
     
     prescale: function(sx, sy) {
-		var m = this.m;
+        var t = new Transform;
+        var m = t.m;
+        m[0][0] = sx;
+        m[1][1] = sy;
+        this.premultiply(t);
+        return;
+        /* Postmultiplies:
+        var m = this.m;
 		m[0][0] *= sx;
 		m[1][0] *= sx;
 		m[0][1] *= sy;
-		m[1][1] *= sy;
+		m[1][1] *= sy;*/
 	},
     
     pretranslate: function (dx, dy) {
-        var m = this.m;
+        var t = new Transform;
+        var m = t.m;
+        m[0][2] = dx;
+        m[1][2] = dy;
+        this.premultiply(t);
+        return;
+        /*var m = this.m;
         m[0][2] += m[0][0]*dx+m[0][1]*dy;
-        m[1][2] += m[1][0]*dx+m[1][1]*dy;
+        m[1][2] += m[1][0]*dx+m[1][1]*dy;*/
     },
     
     prerotate: function (theta) {
@@ -65,8 +78,8 @@ Transform.prototype = {
         var ma = a.m;
         var mb = b.m;
         var m = this.m;
-        for (var i = 0; i < 2; i++) {
-            for (var j = 0; j < 2; j++) {
+        for (var i = 0; i <= 2; i++) {
+            for (var j = 0; j <= 2; j++) {
                 var sum = ma[i][0]*mb[0][j];
                 sum += ma[i][1]*mb[1][j];
                 sum += ma[i][2]*mb[2][j];

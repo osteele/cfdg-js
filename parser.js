@@ -97,7 +97,7 @@ Parser.prototype = {
 	
 	set_initial_state: function () {
 		this.expect('rule', this.rule,
-					'startrule', function () {
+					'startshape', function () {
 						this.expect('<string>', function (name) {
 										this.builder.startshape(name);
 										this.set_initial_state();
