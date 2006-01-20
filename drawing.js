@@ -4,7 +4,7 @@ var Context = function (model) {
     this.graphics = new Graphics;
     this.color = [0,0,0];
 	this.queue = [];
-    this.stats = {rules: 0, countdown: 0, cutoff: .005};
+    this.stats = {rules: 0, countdown: 0, cutoff: .001};
 };
 
 Context.prototype = {
