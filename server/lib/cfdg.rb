@@ -205,29 +205,30 @@ class Graphics
     @s.join(' ')
   end
   
-  def view
+  def view options={}
+    size = options[:width] || 200
     side = [@xmax-@xmin, @ymax-@ymin,0.001].max
     cx, cy = (@xmin+@xmax)/2, (@ymin+@ymax)/2
-    scale = 100.0/side
-    Graphics.view do |f|
+    scale = size.to_f/side
+    Graphics.view(:width => size) do |f|
       f << "scale #{scale} #{scale} "
-      f << 'translate 1 1 '
-      #f << 'translate #{@xmin} #{@ymin} '
+      f << "translate #{-@xmin} #{-@ymin}1 "
       f << content
     end
   end
   
-  def self.view content='', &block
+  def self.view options={}, &block
+    size = options[:width] || 200
     require 'tempfile'
     src = 'drawing.mvg'
     dst = 'drawing.png'
     File.delete(dst) rescue nil
     Tempfile.open(src) do |f|
       src = f.path
-      f << content
+      f << options[:content] if options[:context]
       yield f if block
     end
-    result = `convert -size 200x200 mvg:#{src} #{dst}`
+    result = `convert -size #{size}x#{size} mvg:#{src} #{dst}`
     puts result and return if result
     `open #{dst}`
   end
@@ -481,23 +482,21 @@ class Shape
   end
 end
 
-#puts Parser.new.parse("startshape r rule r {r {r 1 x 1 h 1 y 1}}")
-
-def draw string, mode=:draw
+def draw string, options={}
+  mode=options[:mode] || :draw
   g = Graphics.new
   m = Model.new
   c = Context.new(g, m)
   c.trace = mode == :trace
   c.summary = mode == :summary
-  Parser.new.parse(string, m).draw c
+  Parser.new.parse(string, m).draw(:width => options[:width]) c
   puts g.content if mode == :print
   g.view if mode == :draw
   g.content if mode == :string
 end
 
-draw "rule R {SQUARE {r 45 sat 1 b 1} }"
-
-#draw "rule R {SQUARE {r 45 sat 1 b 1} R {s .8 h 10 r 10 x 0.1} }", :print
+#draw "rule R {CIRCLE {r 0 sat 1 b 1} }"
+#draw "rule R {SQUARE {r 45 sat 1 b 1} R {s .8 h 10 r 10 x 0.1} }"
 #draw "rule R {CIRCLE {sat 1 b 1} R {s .90 r 10 h 10 x .1}}"
-#draw File.open('../../miles.cfdg').read
+draw File.open('../../miles.cfdg').read#, :width => 300
 #draw "rule R {CIRCLE {sat 1 b 1} R {h 10 s .9} } rule R {SQUARE {sat 1 b 1} R {h 10 s .9} }"
