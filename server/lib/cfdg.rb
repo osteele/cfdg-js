@@ -188,16 +188,141 @@ class Parser
   end
 end
 
+class Graphics
+  def initialize
+    @s = []
+  end
+  
+  def content
+    @s.join(' ')
+  end
+  
+  def view
+    
+  end
+  
+  def polygon points, transform
+    points = transform.transformPoints points
+    @s << "polygon #{points.map{|p|p.join(',')}.join(' ')}"
+  end
+  
+  def circle center, radius, transform
+    affine = transform.matrix[0].zip(transform.matrix[1]).flatten
+    @s << 'push graphic-context' <<
+      "affine #{affine.join(',')}" <<
+      "circle #{center.join(',')} #{radius},#{radius}" <<
+      "pop graphic-context"
+  end
+end
+
+class Transform
+  attr_accessor :matrix
+  
+  class Premultiplier
+    def initialize transform
+      @target = transform
+    end
+    
+    def does_not_understand message, other, *args
+      other.send message, @target, *args
+    end
+  end
+  
+  def pre
+    @pre ||= Premultiplier.new self
+  end
+  
+  def initialize matrix=nil, &block
+    @matrix = matrix || [[1,0,0],[0,1,0],[0,0,1]]
+    yield @matrix if block
+  end
+  
+  def cloned
+    clone = Transform.new
+    clone.matrix = @matrix.map {|c| c.clone}
+    clone
+  end
+  
+  def determinant
+    m = @matrix
+    m[0][0]*m[1][1] - m[0][1]*m[1][0]
+  end
+  
+  def * b
+    ma = self.matrix
+    mb = b.matrix
+    Transform.new do |m|
+      for i in 0..2 do
+        for j in 0..2 do
+          m[i][j] = (0..2).map{|k| ma[i][k]*mb[k][j]}.sum
+        end
+      end
+    end
+  end
+  
+  def transformPoints points
+    result = []
+    mx = @matrix[0]
+    my = @matrix[1]
+    points.each do |x, y|
+      result << [
+        x*mx[0]+y*mx[1]+mx[2],
+        x*my[0]+y*my[1]+my[2]]
+    end
+  end
+  
+  def scale sx, sy
+    xform = new Transform do |m|
+      m[0][1] = sx
+      m[1][1] = sy
+    end
+    self * xform
+  end
+  
+  def translate dx, dy
+    xform = new Transform do |m|
+      m[0][2] = dx
+      m[1][2] = dy
+    end
+    self * xform
+  end
+  
+  def rotate r
+    xform = new Transform do |m|
+      cos = Math::cos r
+      m[0][0] = m[1][1] = cos
+      m[0][1] = -(m[1][0] = Math::sin r)
+    end
+  end
+end
+
 class Context
   attr_accessor :transform
   
-  def initialize
+  def initialize graphics
     @state = {:countdown => 10}
-    @transform = nil
+    @graphics = graphics || Graphics.new
+    @transform = Transform.new
   end
   
   def cloned
     clone = self.clone
+    clone.transform = @transform.cloned
+    clone
+  end
+  
+  def draw name, points
+    @graphics.polygon points, transform
+  end
+  
+  def draw_circle center, radius
+    @graphics.circle center, radius, transform
+  end
+end
+
+module Enumerable
+  def sum
+    inject(0){|a,b|a+b}
   end
 end
 
@@ -214,7 +339,7 @@ class Model
   def choose name
     rules = @rules[name]
     raise "No rule named #{name}" unless rules
-    sum = rules.map{|r|r.weight}.inject(0){|a,b|a+b}
+    sum = rules.map{|r|r.weight}.sum
     n = sum*rand
     rules.each do |r|
       return r if (n -= r.weight) <= 0
@@ -225,6 +350,7 @@ end
 
 class Rule
   def draw context
+    raise "context is #{context.inspect}" unless Context === context
     shapes.each do |shape|
       shape.draw context
     end
@@ -238,14 +364,26 @@ class Shape
       context.send name, *value
     end
     message = name.downcase.intern
-    return send(message, context) if responds_to?(message)
+    return send(message, context) if respond_to?(message)
     context.draw shape
   end
   
   def square context
-    puts 'square'
+    context.draw 'square', [[-0.5,-0.5],[-0.5,0.5],[0.5,0.5],[0.5,-0.5]]
+  end
+
+  def circle context
+    context.draw_circle [[0,0]], 0.5
+  end
+  
+  def triangle context
+    dy = -0.25
+    context.draw 'triangle', [[-0.5, dy], [0.5, dy], [0, dy+1]]
   end
 end
 
 #puts Parser.new.parse("startshape r rule r {r {r 1 x 1 h 1 y 1}}")
-Parser.new.parse("rule R {SQUARE {}}").draw Context.new
+
+g = Graphics.new
+Parser.new.parse("rule R {SQUARE {} CIRCLE {}}").draw Context.new(g)
+puts g.content
