@@ -204,8 +204,8 @@ class Graphics
     dst = 'drawing.png'
     Tempfile.open(src) do |f|
       src = f.path
-      f << 'translate 50 50 '
-      f << 'scale 100 100 '
+      f << 'translate 100 100 '
+      f << 'scale 200 200 '
       f << content
     end
     puts `convert -size 200x200 mvg:#{src} #{dst}`
@@ -341,13 +341,19 @@ class Transform
   end  
 end
 
+module Math
+  def self.abs x
+    x < 0 ? -x : x
+  end
+end
+
 class Context
   attr_accessor :transform, :color
   
   def initialize graphics, model
     @graphics = graphics || Graphics.new
     @model = model
-    @state = {:countdown => 10}
+    @state = {:countdown => 100}
     @transform = Transform.new
     @color = [0,0,0]
   end
@@ -360,6 +366,7 @@ class Context
   end
   
   def invoke name
+    return if Math::abs(@transform.determinant) < 0.1
     return if (@state[:countdown] -= 1) < 0
     @model.invoke name, self
   end
@@ -376,9 +383,9 @@ class Context
   
   def rotate r; @transform.pre.rotate! r*Math::PI/180; end
   def size x, y; @transform.pre.scale! x, y; end
-  def x dx; @transform.pre.translate! x, 0; end
-  def y dy; @transform.pre.translate! 0, y; end
-  def hue h; @color[0] = h; end
+  def x dx; @transform.pre.translate! dx, 0; end
+  def y dy; @transform.pre.translate! 0, dy; end
+  def hue h; @color[0] += h; end
   def sat s; @color[1] = s; end
   def brightness b; @color[2] = b; end
 end
@@ -451,8 +458,8 @@ def draw string, view=true
   g = Graphics.new
   m = Model.new
   Parser.new.parse(string, m).draw Context.new(g, m)
-  puts g.content
+  puts g.content unless view
   g.view if view
 end
 
-draw "rule R {SQUARE {r 45 sat 1 b 1} R {s .5 h 10} }", true
+draw "rule R {SQUARE {r 45 sat 1 b 1} R {s .8 h 10 r 10 x 0.1} }", true
