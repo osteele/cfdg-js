@@ -1,3 +1,9 @@
+# Triangle
+# Scale
+# Samples
+# Time-based cutoff
+# don't scale if null program
+
 class Model
   attr_accessor :startshape, :rules
   
@@ -81,7 +87,7 @@ class Lexer
             while word.any?
               next_line if word =~ /--/
               case word
-              when /^\d+(\.\d*)?|\.\d+/
+              when /^-?\d+(\.\d*)?|-?\.\d+/
                 word = $'
                 yield Float, $&.to_f
               when /^[\[\]\{\}\|]/
@@ -192,6 +198,7 @@ end
 class Graphics
   def initialize
     @s = []
+    @xmin = @ymin = @ymin = @ymax = nil
   end
   
   def content
@@ -199,21 +206,42 @@ class Graphics
   end
   
   def view
+    side = [@xmax-@xmin, @ymax-@ymin,0.001].max
+    cx, cy = (@xmin+@xmax)/2, (@ymin+@ymax)/2
+    scale = 100.0/side
+    Graphics.view do |f|
+      f << "scale #{scale} #{scale} "
+      f << 'translate 1 1 '
+      #f << 'translate #{@xmin} #{@ymin} '
+      f << content
+    end
+  end
+  
+  def self.view content='', &block
     require 'tempfile'
     src = 'drawing.mvg'
     dst = 'drawing.png'
+    File.delete(dst) rescue nil
     Tempfile.open(src) do |f|
       src = f.path
-      f << 'translate 100 100 '
-      f << 'scale 200 200 '
       f << content
+      yield f if block
     end
-    puts `convert -size 200x200 mvg:#{src} #{dst}`
+    result = `convert -size 200x200 mvg:#{src} #{dst}`
+    puts result and return if result
     `open #{dst}`
+  end
+  
+  def update_bounds points
+    xs = (points.map{|x,y|x}+[@xmin,@xmax]).compact
+    ys = (points.map{|x,y|y}+[@ymin,@ymax]).compact
+    @xmin = xs.min; @xmax = xs.max
+    @ymin = ys.min; @ymax = ys.max
   end
   
   def polygon points, transform
     points = transform.transformPoints points
+    update_bounds points
     @s << "polygon #{points.map{|p|p.join(',')}.join(' ')}"
   end
   
@@ -221,8 +249,13 @@ class Graphics
     affine = transform.matrix[0].zip(transform.matrix[1]).flatten
     @s << 'push graphic-context' <<
       "affine #{affine.join(',')}" <<
-      "circle #{center.join(',')} #{radius},#{radius}" <<
+      "circle #{center.join(',')} #{center[0]},#{center[1]-radius}" <<
       "pop graphic-context"
+    cx, cy = center
+    r = radius
+    points = [[cx-r,cy-r],[cx-r,cy+r],[cx+r,cy+r],[cx+r,cy-r]]
+    points = transform.transformPoints points
+    update_bounds points
   end
   
   def hsv= hsv
@@ -341,14 +374,8 @@ class Transform
   end  
 end
 
-module Math
-  def self.abs x
-    x < 0 ? -x : x
-  end
-end
-
 class Context
-  attr_accessor :transform, :color
+  attr_accessor :transform, :color, :trace, :summary
   
   def initialize graphics, model
     @graphics = graphics || Graphics.new
@@ -366,8 +393,9 @@ class Context
   end
   
   def invoke name
-    return if Math::abs(@transform.determinant) < 0.1
+    return if @transform.determinant.abs < 0.01
     return if (@state[:countdown] -= 1) < 0
+    puts "Invoking #{name}" if @trace
     @model.invoke name, self
   end
   
@@ -377,6 +405,7 @@ class Context
   end
   
   def draw_circle center, radius
+    puts "circle #{center.inspect} #{radius}" and return if @summary
     @graphics.hsv = color
     @graphics.circle center, radius, transform
   end
@@ -443,7 +472,7 @@ class Shape
   end
 
   def circle context
-    context.draw_circle [[0,0]], 0.5
+    context.draw_circle [0,0], 0.5
   end
   
   def triangle context
@@ -454,12 +483,21 @@ end
 
 #puts Parser.new.parse("startshape r rule r {r {r 1 x 1 h 1 y 1}}")
 
-def draw string, view=true
+def draw string, mode=:draw
   g = Graphics.new
   m = Model.new
-  Parser.new.parse(string, m).draw Context.new(g, m)
-  puts g.content unless view
-  g.view if view
+  c = Context.new(g, m)
+  c.trace = mode == :trace
+  c.summary = mode == :summary
+  Parser.new.parse(string, m).draw c
+  puts g.content if mode == :print
+  g.view if mode == :draw
+  g.content if mode == :string
 end
 
-draw "rule R {SQUARE {r 45 sat 1 b 1} R {s .8 h 10 r 10 x 0.1} }", true
+draw "rule R {SQUARE {r 45 sat 1 b 1} }"
+
+#draw "rule R {SQUARE {r 45 sat 1 b 1} R {s .8 h 10 r 10 x 0.1} }", :print
+#draw "rule R {CIRCLE {sat 1 b 1} R {s .90 r 10 h 10 x .1}}"
+#draw File.open('../../miles.cfdg').read
+#draw "rule R {CIRCLE {sat 1 b 1} R {h 10 s .9} } rule R {SQUARE {sat 1 b 1} R {h 10 s .9} }"
