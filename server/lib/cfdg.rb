@@ -107,7 +107,8 @@ end
 class Parser
   attr_accessor :model
   
-  def parse source
+  def parse source, model
+    @model = model if model
     @model ||= Model.new
     @tokens = []
     Lexer.new(source).each do |type, token|
@@ -198,7 +199,17 @@ class Graphics
   end
   
   def view
-    
+    require 'tempfile'
+    src = 'drawing.mvg'
+    dst = 'drawing.png'
+    Tempfile.open(src) do |f|
+      src = f.path
+      f << 'translate 50 50 '
+      f << 'scale 100 100 '
+      f << content
+    end
+    puts `convert -size 200x200 mvg:#{src} #{dst}`
+    `open #{dst}`
   end
   
   def polygon points, transform
@@ -213,6 +224,24 @@ class Graphics
       "circle #{center.join(',')} #{radius},#{radius}" <<
       "pop graphic-context"
   end
+  
+  def hsv= hsv
+    def hsv2rgb h, s, v
+      h, s, v = h.to_f, s.to_f, v.to_f
+      return v, v, v if s == 0 # gray
+      h = h / 60.0 # sector 0 to 5
+      i = h.to_i
+      f = h - i
+      p = v * (1 - s)
+      q = v * (1 - s * f)
+      t = v * (1 - s * (1 - f))
+      [[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][i % 6]
+    end
+    rgb = hsv2rgb *hsv
+    return if @rgb == rgb
+    @rgb = rgb
+    @s << "fill ##{@rgb.map{|v|format "%02x",(v*255).to_i}.join('')}"
+  end
 end
 
 class Transform
@@ -223,8 +252,16 @@ class Transform
       @target = transform
     end
     
-    def does_not_understand message, other, *args
-      other.send message, @target, *args
+    def method_missing message, *args
+      pre = Transform.new
+      pre = pre.send(message, *args) || pre
+      result = pre * @target
+      if message.to_s[-1] == ?!
+        @target.matrix = result.matrix
+        nil
+      else
+        result
+      end
     end
   end
   
@@ -261,26 +298,25 @@ class Transform
   end
   
   def transformPoints points
-    result = []
     mx = @matrix[0]
     my = @matrix[1]
-    points.each do |x, y|
-      result << [
+    points.map do |x, y|
+      [
         x*mx[0]+y*mx[1]+mx[2],
         x*my[0]+y*my[1]+my[2]]
     end
   end
   
   def scale sx, sy
-    xform = new Transform do |m|
-      m[0][1] = sx
+    xform = Transform.new do |m|
+      m[0][0] = sx
       m[1][1] = sy
     end
     self * xform
   end
   
   def translate dx, dy
-    xform = new Transform do |m|
+    xform = Transform.new do |m|
       m[0][2] = dx
       m[1][2] = dy
     end
@@ -288,36 +324,63 @@ class Transform
   end
   
   def rotate r
-    xform = new Transform do |m|
+    xform = Transform.new do |m|
       cos = Math::cos r
       m[0][0] = m[1][1] = cos
       m[0][1] = -(m[1][0] = Math::sin r)
     end
+    self * xform
   end
+  
+  def method_missing message, *args
+    if message.to_s[-1] == ?!
+      @matrix = send(message.to_s[0...-1], *args).matrix
+      return
+    end
+    super
+  end  
 end
 
 class Context
-  attr_accessor :transform
+  attr_accessor :transform, :color
   
-  def initialize graphics
-    @state = {:countdown => 10}
+  def initialize graphics, model
     @graphics = graphics || Graphics.new
+    @model = model
+    @state = {:countdown => 10}
     @transform = Transform.new
+    @color = [0,0,0]
   end
   
   def cloned
     clone = self.clone
     clone.transform = @transform.cloned
+    clone.color = @color.clone
     clone
   end
   
-  def draw name, points
+  def invoke name
+    return if (@state[:countdown] -= 1) < 0
+    @model.invoke name, self
+  end
+  
+  def draw_polygon name, points
+    @graphics.hsv = color
     @graphics.polygon points, transform
   end
   
   def draw_circle center, radius
+    @graphics.hsv = color
     @graphics.circle center, radius, transform
   end
+  
+  def rotate r; @transform.pre.rotate! r*Math::PI/180; end
+  def size x, y; @transform.pre.scale! x, y; end
+  def x dx; @transform.pre.translate! x, 0; end
+  def y dy; @transform.pre.translate! 0, y; end
+  def hue h; @color[0] = h; end
+  def sat s; @color[1] = s; end
+  def brightness b; @color[2] = b; end
 end
 
 module Enumerable
@@ -328,12 +391,12 @@ end
 
 class Model
   def draw context
-    invoke(startshape, context)
+    invoke startshape, context
   end
   
   def invoke name, context
-    r = choose name
-    r.draw context
+    rule = choose name
+    rule.draw context
   end
   
   def choose name
@@ -365,11 +428,11 @@ class Shape
     end
     message = name.downcase.intern
     return send(message, context) if respond_to?(message)
-    context.draw shape
+    context.invoke name
   end
   
   def square context
-    context.draw 'square', [[-0.5,-0.5],[-0.5,0.5],[0.5,0.5],[0.5,-0.5]]
+    context.draw_polygon 'square', [[-0.5,-0.5],[-0.5,0.5],[0.5,0.5],[0.5,-0.5]]
   end
 
   def circle context
@@ -384,6 +447,12 @@ end
 
 #puts Parser.new.parse("startshape r rule r {r {r 1 x 1 h 1 y 1}}")
 
-g = Graphics.new
-Parser.new.parse("rule R {SQUARE {} CIRCLE {}}").draw Context.new(g)
-puts g.content
+def draw string, view=true
+  g = Graphics.new
+  m = Model.new
+  Parser.new.parse(string, m).draw Context.new(g, m)
+  puts g.content
+  g.view if view
+end
+
+draw "rule R {SQUARE {r 45 sat 1 b 1} R {s .5 h 10} }", true
