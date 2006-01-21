@@ -14,7 +14,7 @@ class Model
   def add_rule rule
     @rules[rule.name] ||= []
     @rules[rule.name] << rule
-    @start_rule ||= rule.name
+    @startshape ||= rule.name
   end
 end
 
@@ -35,6 +35,8 @@ class Rule
   end
 end
 
+ATTRIBUTE_NAMES = %w{x y rotate flip size sx sy skew hue sat brightness} unless Object.const_defined?(:ATTRIBUTE_NAMES)
+
 class Shape
   attr_accessor :name, :attributes
   
@@ -48,7 +50,7 @@ class Shape
   end
   
   def set_attribute name, value
-    name = {'s' => 'size', 'h' => 'hue', 'b' => 'brightness'}[name] || name
+    name = {'s' => 'size', 'r' => 'rotate', 'h' => 'hue', 'b' => 'brightness'}[name] || name
     arity = 1
     if %w{size skew}.include?(name)
       value *= 2 if value.length == 1
@@ -59,6 +61,7 @@ class Shape
   end
   
   def sort_attributes
+    @attributes = @attributes.sort_by {|pair| ATTRIBUTE_NAMES.index pair[0]}
   end
 end
 
@@ -111,7 +114,7 @@ class Parser
       @tokens << [type, token]
     end
     start
-    self
+    model
   end
   
   def compilation_error message
@@ -185,4 +188,64 @@ class Parser
   end
 end
 
-puts Parser.new.parse("startshape r rule r {r {}}").model
+class Context
+  attr_accessor :transform
+  
+  def initialize
+    @state = {:countdown => 10}
+    @transform = nil
+  end
+  
+  def cloned
+    clone = self.clone
+  end
+end
+
+class Model
+  def draw context
+    invoke(startshape, context)
+  end
+  
+  def invoke name, context
+    r = choose name
+    r.draw context
+  end
+  
+  def choose name
+    rules = @rules[name]
+    raise "No rule named #{name}" unless rules
+    sum = rules.map{|r|r.weight}.inject(0){|a,b|a+b}
+    n = sum*rand
+    rules.each do |r|
+      return r if (n -= r.weight) <= 0
+    end
+    raise "implementation error"
+  end
+end
+
+class Rule
+  def draw context
+    shapes.each do |shape|
+      shape.draw context
+    end
+  end
+end
+
+class Shape
+  def draw context
+    context = context.cloned
+    attributes.each do |name, value|
+      context.send name, *value
+    end
+    message = name.downcase.intern
+    return send(message, context) if responds_to?(message)
+    context.draw shape
+  end
+  
+  def square context
+    puts 'square'
+  end
+end
+
+#puts Parser.new.parse("startshape r rule r {r {r 1 x 1 h 1 y 1}}")
+Parser.new.parse("rule R {SQUARE {}}").draw Context.new
