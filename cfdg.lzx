@@ -1,5 +1,6 @@
 <canvas title="CFDG" proxied="false" layout="axis: y">
   <include href="incubator/roundrectbutton.lzx"/>
+  <include href="incubator/scrolledittext.lzx"/>
   <include href="scaleview.lzx"/>
   <script src="model.js"/>
   <script src="parser.js"/>
@@ -24,10 +25,9 @@
   <text width="100%" height="20" id="statusField"/>
   <hbox width="100%" height="${parent.height-40}">
     <view width="30%" height="100%">
-      <inputtext id="sourceField" width="100%" height="200%" multiline="true">
+      <scrolledittext id="sourceField" width="100%" height="200%" multiline="true">
         <pre><include href="miles.cfdg" type="text"/></pre>
-      </inputtext>
-      <scrollbar/>
+      </scrolledittext>
     </view>
     <view id="maskText" visible="${appstate.loading}"
           bgcolor="white" opacity="0.5" clickable="true"

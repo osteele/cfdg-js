@@ -39,6 +39,12 @@ Context.prototype = {
     set_y: function (dy) {this.transform.pretranslate(0, dy)},
 	set_size: function (size) {this.transform.prescale(size[0], size[1])},
 	set_rotate: function (r) {this.transform.prerotate(r*Math.PI/180);},
+	set_skew: function (skew) {
+		t = new Transform;
+		t.m[0][1] = Math.tan(skew[0]*Math.PI/180);
+		t.m[1][0] = Math.tan(skew[1]*Math.PI/180);
+		this.transform.premultiply(t);
+	},
     set_flip: function (r) {
         r *= Math.PI/180;
         this.transform.prerotate(-r);

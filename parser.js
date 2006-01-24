@@ -13,17 +13,16 @@ String.prototype.lines = function () {return this.split2('\r', '\n');};
 String.prototype.words = function () {return this.split2(' ', '\t');};
 
 function lex(text, parser) {
-    parser = parser || {receive: function (type, token) {print(type, ": ", token)}};
+    parser = parser || {receive: function (type, token) {print(type, ": '" + token + "'")}};
 	var lines = text.lines();
 	for (var i = 0; i < lines.length; i++) {
 		var words = lines[i].words();
 		while (words.length && !words[0]) words.shift();
-        if (!words.length) continue;
-		if (words[0].charAt(0)=='#') continue;
-		if (words[0].slice(0,2)=='//') continue;
 		while (words.length) {
 			var word = words.shift();
-			if (!word.length) continue;
+			if (!word) continue;
+			if (word.charAt(0)=='#') break;
+			if (word.slice(0,2)=='//') break;
 			if (word.length == 1) {
 			} else if (PUNCTUATION.indexOf(word.charAt(0)) >= 0) {
 				if (word.length > 1) words.unshift(word.slice(1));
