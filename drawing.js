@@ -29,11 +29,15 @@ Context.prototype = {
             this.stats.rules += 1;
         }
     },
-    drawPath: function (name, points, isCurve) {
+    drawPolygon: function (points) {
         var points = this.transform.transformPoints(points);
         this.graphics.setHSV(this.color);
-		this.graphics.drawPath(name, points, isCurve);
+		this.graphics.drawPath(name, points);
     },
+	drawCircle: function (center, radius) {
+        this.graphics.setHSV(this.color);
+		this.graphics.drawCircle(center, radius);
+	},
     transform: function (points) {return this.transform.transform(points)},
     set_x: function (dx) {this.transform.pretranslate(dx, 0)},
     set_y: function (dy) {this.transform.pretranslate(0, dy)},
@@ -90,25 +94,15 @@ var Shapes = {
 	CIRCLE: function (context) {
 		if (Math.abs(context.transform.determinant()) < context.stats.cutoff*2)
             return this.SQUARE(context);
-		var pts = [[.5, 0]];
-        var theta = Math.PI/4;
-        var rctl = 0.5/Math.cos(theta/2);
-        var angle = 0;
-        for (var i = 0; i < 8; i++) {
-            angle += theta/2;
-            pts.push([rctl*Math.cos(angle), rctl*Math.sin(angle)]);
-            angle += theta/2;
-            pts.push([Math.cos(angle)/2, Math.sin(angle)/2]);
-        }
-		context.drawPath("CIRCLE", pts, true);
+		context.drawCircle([0,0],0.5);
 	},
 	SQUARE: function (context) {
 		var pts = [[-.5,-.5], [-.5,.5], [.5,.5], [.5,-.5]];
-		context.drawPath("SQUARE", pts);
+		context.drawPolygon(pts);
 	},
 	TRIANGLE: function (context) {
         var y = -0.5/Sqrt3;
 		var pts = [[-.5,y], [.5,y], [0, y+Sqrt3/2]];
-		context.drawPath("TRIANGLE", pts);
+		context.drawPolygon(pts);
 	}
 }

@@ -1,10 +1,9 @@
 function Graphics() {}
 
 Graphics.prototype = {
-    drawPath: function (message, points) {
-        if (message == 'CIRCLE') points = points[0]+'...';
-        print(message, points);
-    },
+    drawPolygon: function (points) {},
+	drawCircle: function (center, radius) {},
+	drawPath: function (points) {},
     setRGB: function (rgb) {},
     setHSV: function (hsv) {
 		var h = ((hsv[0] % 360) + 360) % 360;
@@ -21,6 +20,31 @@ Graphics.prototype = {
 		this.setRGB(rgb);
     }
 };
+
+function makeQuadraticCircle() {
+	var pts = [[1, 0]];
+	var theta = Math.PI/4;
+	var rctl = 1/Math.cos(theta/2);
+	var angle = 0;
+	for (var i = 0; i < 8; i++) {
+		angle += theta/2;
+		pts.push([rctl*Math.cos(angle), rctl*Math.sin(angle)]);
+		angle += theta/2;
+		pts.push([Math.cos(angle), Math.sin(angle)]);
+	}
+	return pts;
+}
+
+function makeCubicCircle() {
+	// http://graphics.stanford.edu/courses/cs248-98-fall/Final/q1.html
+	var a = .552;
+	a = (Math.sqrt(2)-1)*4/3;
+	return [[1,0],
+			[1,a],[a,1],[0,1],
+			[-a,1],[-1,a],[-1,0],
+			[-1,-a],[-a,-1],[0,-1],
+			[a,-1],[1,-a],[1,0]];
+}
 
 Transform = function () {
     this.m = [[1,0,0],[0,1,0],[0,0,1]];
@@ -59,7 +83,7 @@ Transform.prototype = {
         m[0][0] = sx;
         m[1][1] = sy;
         this.premultiply(t);
-        return;
+        return this;
         /* Postmultiplies:
         var m = this.m;
 		m[0][0] *= sx;

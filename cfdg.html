@@ -7,18 +7,23 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
  <head>
   <title>CFDG</title>
-   <script src="parser.js"></script>
-   <script src="model.js"></script>
-   <script src="graphics.js"></script>
-   <script src="drawing.js"></script>
+   <script type="text/javascript" src="model.js"></script>
+   <script type="text/javascript" src="parser.js"></script>
+   <script type="text/javascript" src="graphics.js"></script>
+   <script type="text/javascript" src="drawing.js"></script>
+   <script type="text/javascript" src="fvlogger/logger.js"></script>
+   <link rel="stylesheet" type="text/css" href="fvlogger/logger.css"/>
 </head>
  <body>
+   <div id="fvlogger"></div>
 <table><tr><td width="30%">
-   <button onclick="render()">Render</button>
+   <button id="renderButton" onclick="doRender()">Render</button>
+   <button id="stopButton" onclick="stopRendering()" style="display:none">Stop</button>
    <textarea cols="40" rows="100" id="sourceField"> </textarea>
 </td><td width="70%">
    <canvas id="canvas" width="600" height="500"></canvas>
 </td></tr></table>
-   <script src="cfdg.js"></script>
+   <script type="text/javascript" src="cfdg.js"></script>
+   
  </body>
 </html>
