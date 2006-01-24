@@ -31,7 +31,7 @@ Context.prototype = {
     },
     drawPath: function (name, points, isCurve) {
         var points = this.transform.transformPoints(points);
-        this.graphics.setHsv.apply(this.graphics, this.color);
+        this.graphics.setHSV(this.color);
 		this.graphics.drawPath(name, points, isCurve);
     },
     transform: function (points) {return this.transform.transform(points)},

@@ -5,7 +5,21 @@ Graphics.prototype = {
         if (message == 'CIRCLE') points = points[0]+'...';
         print(message, points);
     },
-    setHsv: function (h, s, v) {}
+    setRGB: function (rgb) {},
+    setHSV: function (hsv) {
+		var h = ((hsv[0] % 360) + 360) % 360;
+		var s = Math.min(1, Math.max(0, hsv[1]));
+		var v = Math.min(1, Math.max(0, hsv[2]));
+		if (s == 0) return this.setRGB([v, v, v]);
+		h = h / 60.0; // sector 0 to 5
+		var i = Math.floor(h);
+		var f = h - i;
+		var p = v * (1 - s);
+		var q = v * (1 - s * f);
+		var t = v * (1 - s * (1 - f));
+		var rgb = [[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][i % 6];
+		this.setRGB(rgb);
+    }
 };
 
 Transform = function () {

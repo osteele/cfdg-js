@@ -127,28 +127,12 @@
       if (curve) dv.drawCurve(pts); else dv.drawPath(pts);
       shapeCount += 1;
     };
-    Graphics.prototype.setHsv = function (h, s, v) {
-      h = ((h % 360) + 360) % 360;
-      s = Math.min(1, Math.max(0, s));
-      v = Math.min(1, Math.max(0, v));
-      var lastHsv = dv.lastHsv;
-      if (lastHsv[0] == h && lastHsv[1] == s && lastHsv[2] == v) return;
-      dv.lastHsv = [h, s, v];
-      var c = Math.floor(255 * v);
-      dv.fillStyle = 0x010101 * c;
-      if (s == 0) return;
-      h = h / 60.0; // sector 0 to 5
-      var i = Math.floor(h);
-      var f = h - i;
-      var p = v * (1 - s);
-      var q = v * (1 - s * f);
-      var t = v * (1 - s * (1 - f));
-      var rgb = [[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][i % 6];
+    Graphics.prototype.setRGB = function (rgb) {
       var r = Math.floor(255*rgb[0]);
       var g = Math.floor(255*rgb[1]);
       var b = Math.floor(255*rgb[2]);
       dv.fillStyle = (r<<16)+(g<<8)+b;
-    }
+    };
     var currentContext = null;
     function render() {
       dv.reset();
