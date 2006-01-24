@@ -23,13 +23,17 @@ function lex(text, parser) {
 			if (!word) continue;
 			if (word.charAt(0)=='#') break;
 			if (word.slice(0,2)=='//') break;
-			if (word.length == 1) {
-			} else if (PUNCTUATION.indexOf(word.charAt(0)) >= 0) {
-				if (word.length > 1) words.unshift(word.slice(1));
-				word = word.charAt(0);
-			} else while (PUNCTUATION.indexOf(word.charAt(word.length-1)) >= 0) {
-				words.unshift(word.charAt(word.length-1));
-				word = word.slice(0, word.length-1);
+			if (word.length > 1) {
+				for (var pi = PUNCTUATION.length; --pi >= 0; ) {
+					var pindex = word.indexOf(PUNCTUATION.charAt(pi));
+					if (pindex == 0) {
+						words.unshift(word.slice(1));
+						word = word.slice(0, 1);
+					} else if (pindex >= 0) {
+						words.unshift(word.slice(pindex));
+						word = word.slice(0, pindex);
+					}
+				}
 			}
             var type = null;
             var token = word;

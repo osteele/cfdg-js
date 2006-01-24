@@ -7,4 +7,4 @@ Debug = {write: function(a) {print(a)}};
 
 //draw("rule R { SQUARE {} R {s .5} }")
 
-parse('rule R {SQUARE {hue 1|}}')
+lex('rule EITHER {BL{flip 90}}')
