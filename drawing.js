@@ -36,7 +36,7 @@ Context.prototype = {
     },
 	drawCircle: function (center, radius) {
         this.graphics.setHSV(this.color);
-		this.graphics.drawCircle(center, radius);
+		this.graphics.drawCircle(center, radius, this.transform);
 	},
     transform: function (points) {return this.transform.transform(points)},
     set_x: function (dx) {this.transform.pretranslate(dx, 0)},
