@@ -1,5 +1,5 @@
 var EOF = -1;
-var PUNCTUATION = "()[]{};";
+var PUNCTUATION = "()[]{}|;";
 
 // Flash can't split on regular expressions, or we could split on /\n|\r/
 String.prototype.split2 = function (a, b) {
@@ -131,6 +131,10 @@ Parser.prototype = {
 							this.expect_attribute_name();
 							return this.builder.add_attribute_value(value);
 						};
+						this.transitions['|'] = function () {
+							this.expect_attribute_name();
+							return this.builder.pipe();
+						}
 						return this.builder.add_attribute(name, value);
 					});
 	},
@@ -242,7 +246,15 @@ Builder.prototype = {
 		var vector = this.pop_attribute_value(name);
 		vector[1] = value;
         this.add_attribute_helper(name, vector);
-	}	
+	},
+	
+	pipe: function () {
+		var name = this.lastAttributeName;
+		if (name == 'hue') {
+			this.pop_attribute_value(name);
+			this.add_attribute_helper(name, 0);
+		}
+	}
 };
 
 function parse(string, mode) {

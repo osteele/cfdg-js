@@ -1,6 +1,6 @@
 // translate rotate scale skew reflect
 var ATTRIBUTE_NAMES = 'x y rotate size sx sy skew flip hue sat brightness'.split(' ');
-var ATTRIBUTE_NAME_SYNONYMS = {s: 'size', r: 'rotate', b: 'brightness'};
+var ATTRIBUTE_NAME_SYNONYMS = {s: 'size', r: 'rotate', b: 'brightness', h: 'hue'};
 var ATTRIBUTE_ARITY = {size: 2, skew: 2}
 
 var Model = function () {
