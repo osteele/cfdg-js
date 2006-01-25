@@ -1,16 +1,24 @@
 <canvas title="CFDG" proxied="false" layout="axis: y">
-  <include href="incubator/roundrectbutton.lzx"/>
-  <include href="incubator/scrolledittext.lzx"/>
-  <include href="scaleview.lzx"/>
   <script src="model.js"/>
   <script src="parser.js"/>
   <script src="graphics.js"/>
   <script src="drawing.js"/>
+  <include href="incubator/roundrectbutton.lzx"/>
+  <include href="incubator/scrolledittext.lzx"/>
+  <include href="scaleview.lzx"/>
+  <include href="gallery.lzx"/>
+  <splash/>
   
   <node id="appstate">
     <attribute name="rendering" value="false"/>
     <attribute name="loading" value="false"/>
-    <attribute name="gallery" value="false"/>
+    <attribute name="user_id" value="null"/>
+  </node>
+  
+  <node id="document">
+    <attribute name="doc_name" type="string" value=""/>
+    <attribute name="doc_id" value="null"/>
+    <attribute name="user_id" value="null"/>
   </node>
   
   <hbox width="100%" height="20">
@@ -19,7 +27,10 @@
       <roundrectbutton height="20" onclick="stopRendering()" visible="${appstate.rendering}">Stop</roundrectbutton>
     </view>
     <roundrectbutton height="20" onclick="loadDialog.show()">Gallery</roundrectbutton>
-    <roundrectbutton height="20" onclick="saveDialog.setAttribute('visible', true)">Save</roundrectbutton>
+    <roundrectbutton height="20" visible="${!document.user_id || document.user_id == appstate.user_id}"
+		     onclick="saveDialog.setAttribute('visible', true)">Save</roundrectbutton>
+    <roundrectbutton height="20" visible="${document.doc_id}"
+		     onclick="saveDialog.setAttribute('visible', true)">Save as...</roundrectbutton>
   </hbox>
   
   <text width="100%" height="20" id="statusField"/>
@@ -42,82 +53,6 @@
                  height="${this.width}"/>
     </view>
   </hbox>
-  
-  <dataset name="filelistdata"
-           ondata="appstate.setAttribute('gallery', true)"/>
-  <dataset name="fileloaddata"
-           ondata="Debug.write('ondata');
-                   sourceField.setText(fileloaddata.data.childNodes[0].data);
-                   appstate.setAttribute('loading', false);"
-           onerror="Debug.write('onerror');
-                    appstate.setAttribute('loading', false);"
-           ontimeout="Debug.write('onerror');
-                    appstate.setAttribute('loading', false);"/>
-  <window id="loadDialog" title="Open..."
-          visible="false" closeable="true"
-          options="ignorelayout" width="200">
-    <method name="show">
-      setAttribute('visible', true);
-      filelistdata.setSrc(server + "/document/list");
-      filelistdata.doRequest();
-    </method>
-    <text visible="${!appstate.gallery}">Loading gallery...</text>
-    <view height="150" datapath="filelistdata:/documents">
-      <wrappinglayout/>
-      <hbox datapath="document">
-	<method event="onclick">
-	  fileloaddata.setSrc(server + '/document/show/' + this.xid);
-	  fileloaddata.timeout = 5000;
-	  fileloaddata.doRequest();
-	  loadDialog.setAttribute('visible', false);
-	  appstate.setAttribute('loading', true);
-	  fileloaddata.data = null;
-	</method>
-	<image datapath="@image"/>
-	<text datapath="@name"/>
-      </hbox>
-    </view>
-    <!--view height="150">
-      <vbox datapath="filelistdata:/documents">
-        <roundrectbutton datapath="document" height="20" text="$path{'@name'}">
-          <method event="onclick">
-            fileloaddata.setSrc(server + '/document/show/' + this.xid);
-            fileloaddata.timeout = 5000;
-            fileloaddata.doRequest();
-            loadDialog.setAttribute('visible', false);
-            appstate.setAttribute('loading', true);
-            fileloaddata.data = null;
-          </method>
-          <attribute name="xid" value="$path{'@id'}"/>
-        </roundrectbutton>
-      </vbox>
-    </view-->
-  </window>
-  <dataset name="filesaveds"
-           ondata="statusField.setText(filesaveds.data)"/>
-  <window id="saveDialog" title="Save"
-          visible="false"
-          options="ignorelayout" layout="axis: y">
-    <hbox>
-      <text>Name: </text>
-      <edittext id="nameField" width="140"/>
-    </hbox>
-    <hbox>
-      <roundrectbutton height="20" text="Save">
-        <method event="onclick">
-          filesaveds.setSrc(server + '/document/save');
-          filesaveds.setQueryType('POST');
-          filesaveds.setQueryParam('name', nameField.getText());
-          filesaveds.setQueryParam('content', sourceField.getText());
-          filesaveds.doRequest();
-          saveDialog.setVisible(false);
-        </method>
-      </roundrectbutton>
-      <roundrectbutton height="20" onclick="saveDialog.setVisible(false)">
-        Cancel
-      </roundrectbutton>
-    </hbox>
-  </window>
   
   <script><![CDATA[
     function info(s) {Debug.write.call(Debug, arguments)}
@@ -187,16 +122,6 @@
     statusField.setText(msg);
     if (!cxt.queue.length) stopRendering(true);
   </method>
-  <method event="onidle" reference="LzIdle"><![CDATA[
-    if (!appstate.loading) return;
-    if (!fileloaddata.data) return;
-    var s = '';
-    var lines = fileloaddata.data.childNodes[0].data.split("\n");
-    for (var i = 0; i < lines.length; i++)
-      s += lines[i];
-    sourceField.setText(s);
-    appstate.setAttribute('loading', false);
-  ]]></method>
   <script><![CDATA[
     function stopRendering(done) {
       if (!appstate.rendering) return;

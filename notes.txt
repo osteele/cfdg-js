@@ -1,8 +1,16 @@
+Gallery:
+- you can "Save" if it's an item that you created
+- new "Save as" otherwise
+- "Save" asks you for a user name if you don't have one
+- server says who you are; gets it from the session
+caching:
+- when you save, the server forks a process to write an image file
+- admin to generate missing image files, and re-generate select files
+
 Top:
 - gallery
 
 Language features:
-- skew
 - pipe
 - include
 - background
@@ -13,6 +21,7 @@ Web Features:
 - PDF
 
 Polish:
+- default color tree
 - instructions on main page
 - inline syntax errors
 - copyright
@@ -23,31 +32,30 @@ Polish:
 Errors for:
 - unknown rules
 - "s 1 2 3"
+- "s 1 s 2 3"
+- invalid attribute name
 
 Features:
 - auto-color
 
 Literacy:
-- move boundary updating, if it's not too expensive
-- clean up the sx sy mess
-- clean up the view resizing mess
+- move boundary updating?
 
 Optimize:
+- use actual pixel size for cutoff
 - [[x,y]] vs. [{x: x, y: y}] vs. [x,y]
 - build a Transform for each shape
 - inline setAttribute
-- faster circles
-- flash xform
-
-
-circles:
-http://www.actionscript.org/forums/showthread.php3?s=&threadid=30328
-
 
 Corners:
+<<<<<<< HEAD:notes.txt
 - "s 1 s 2 3"
 - invalid attribute name
 - "line{TRIANGLE{s"
 
 case sensitive rules
 missing rules
+=======
+- case sensitivity?
+
+>>>>>>> a201eda... factor gallery file, add document and user_id state:notes.txt

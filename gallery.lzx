@@ -1,0 +1,85 @@
+<library>
+  <class name="itemIcon" extends="hbox">
+    <method event="onclick">
+      fileloaddata.setSrc(server + '/document/show/' + this.xid);
+      fileloaddata.timeout = 5000;
+      fileloaddata.doRequest();
+      loadDialog.setAttribute('visible', false);
+      appstate.setAttribute('loading', true);
+      fileloaddata.data = null;
+    </method>
+    <image datapath="@image"/>
+    <text datapath="@name"/>
+    <attribute name="doc_id" value="$path{'@id'}"/>
+  </class>
+  
+  <dataset name="filelistdata"
+           ondata="loadDialog.setAttribute('gallery_loaded', true)"/>
+  
+  <dataset name="fileloaddata"
+           ondata="Debug.write('ondata');
+                   sourceField.setText(fileloaddata.data.childNodes[0].data);
+                   appstate.setAttribute('loading', false);"
+           onerror="Debug.write('onerror');
+                    appstate.setAttribute('loading', false);"
+           ontimeout="Debug.write('onerror');
+                    appstate.setAttribute('loading', false);"/>
+  
+  <window id="loadDialog" title="Open..."
+          visible="false" closeable="true"
+          options="ignorelayout" width="200">
+    <attribute name="gallery_loaded" value="false"/>
+    <method name="show">
+      setAttribute('visible', true);
+      setAttribute('gallery_loaded', false);
+      filelistdata.setSrc(server + "/document/list");
+      filelistdata.doRequest();
+    </method>
+    <text visible="${!loadDialog.gallery_loaded}">Loading gallery...</text>
+    <view height="150" datapath="filelistdata:/documents">
+      <wrappinglayout/>
+      <itemIcon datapath="document"/>
+    </view>
+  </window>
+  
+  <dataset name="filesaveds"
+           ondata="statusField.setText(filesaveds.data)"/>
+  <window id="saveDialog" title="Save"
+          visible="false"
+          options="ignorelayout" layout="axis: y">
+    <hbox>
+      <text>Name: </text>
+      <edittext id="nameField" width="140" text="${document.doc_name}"/>
+    </hbox>
+    <hbox>
+      <roundrectbutton height="20" text="Save">
+        <method event="onclick">
+          filesaveds.setSrc(server + '/document/save');
+          filesaveds.setQueryType('POST');
+          filesaveds.setQueryParam('name', nameField.getText());
+          filesaveds.setQueryParam('content', sourceField.getText());
+          filesaveds.doRequest();
+          saveDialog.setVisible(false);
+        </method>
+      </roundrectbutton>
+      <roundrectbutton height="20" onclick="saveDialog.setVisible(false)">
+        Cancel
+      </roundrectbutton>
+    </hbox>
+  </window>
+  
+  <method event="onidle" reference="LzIdle"><![CDATA[
+    if (!appstate.loading) return;
+    if (!fileloaddata.data) return;
+    appstate.setAttribute('loading', false);
+    var data = fileloaddata.data;
+    document.setAttribute('doc_name', data.attributes['name']);
+    document.setAttribute('doc_id', data.attributes['id']);
+    document.setAttribute('user_id', data.attributes['user_id']);
+    var s = '';
+    var lines = data.childNodes[0].data.split("\n");
+    for (var i = 0; i < lines.length; i++)
+      s += lines[i];
+    sourceField.setText(s);
+  ]]></method>
+</library>

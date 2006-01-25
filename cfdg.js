@@ -96,7 +96,8 @@ Graphics.prototype.drawPath = function (pts, isCubic) {
 		var xmin = mins[0], ymin = mins[1], xmax = maxs[0], ymax = maxs[1];
 		var dx = xmax - xmin, dy = ymax - ymin;
 		var firstTime = State.xmin == null;
-		var rs = .33;
+		this.rescale = this.rescale || .33;
+		var rs = this.rescale *= 1.1;
 		if (firstTime || xmin < State.xmin) State.xmin = xmin - dx*rs;
 		if (firstTime || ymin < State.ymin) State.ymin = ymin - dy*rs;
 		if (firstTime || xmax > State.xmax) State.xmax = xmax + dx*rs;
