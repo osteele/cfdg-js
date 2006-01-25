@@ -32,7 +32,7 @@ Context.prototype = {
     drawPolygon: function (points) {
         var points = this.transform.transformPoints(points);
         this.graphics.setHSV(this.color);
-		this.graphics.drawPath(name, points);
+		this.graphics.drawPolygon(points);
     },
 	drawCircle: function (center, radius) {
         this.graphics.setHSV(this.color);

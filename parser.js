@@ -13,7 +13,7 @@ String.prototype.lines = function () {return this.split2('\r', '\n');};
 String.prototype.words = function () {return this.split2(' ', '\t');};
 
 function lex(text, parser) {
-    parser = parser || {receive: function (type, token) {print(type, ": '" + token + "'")}};
+    parser = parser || {receive: function (type, token) {info(type, ": '" + token + "'")}};
 	var lines = text.lines();
 	for (var i = 0; i < lines.length; i++) {
 		var words = lines[i].words();
@@ -61,8 +61,6 @@ Parser.prototype = {
 	receive: function (type, token) {
 		var fn = this.transitions[token] || this.transitions[type];
 		if (!fn) {
-			//for (var p in this.transitions)
-			//	print("" + p + " -> " + this.transitions[p]);
 			var msg = "Expected one of: ";
 			var sep = '';
 			for (var key in this.transitions) {
@@ -161,12 +159,12 @@ var Builder = function (model) {
 
 Builder.prototype = {
 	startshape: function (name) {
-		//print('builder: startshape ' + name);
+		//info('builder: startshape ' + name);
 		this.model.startName = name;
 	},
 	
 	start_rule: function (name) {
-		//print('builder: rule ' + name);
+		//info('builder: rule ' + name);
 		this.rule = this.model.makeRule(name);
 	},
 	
@@ -175,18 +173,18 @@ Builder.prototype = {
     },
     
 	start_child: function (name) {
-		//print('builder: child ' + name);
+		//info('builder: child ' + name);
 		this.call = this.rule.addCall(name);
 	},
 	
 	start_attribute_set: function () {
-		//print('builder: attribute set');
+		//info('builder: attribute set');
 		this.attributeSet = {};
 		this.set_attribute_handlers(this.attribute_handlers.set);
 	},
 	
 	start_attribute_list: function () {
-		//print('builder: attribute list');
+		//info('builder: attribute list');
 		this.attributeList = [];
 		this.set_attribute_handlers(this.attribute_handlers.list);
 	},
@@ -231,7 +229,7 @@ Builder.prototype = {
 	},
 	
 	add_attribute: function (name, value) {
-		//print('builder: add attribute ' + name + ", " + value);
+		//info('builder: add attribute ' + name + ", " + value);
 		if (ATTRIBUTE_NAME_SYNONYMS[name])
 			name = ATTRIBUTE_NAME_SYNONYMS[name];
         if (ATTRIBUTE_ARITY[name] == 2)

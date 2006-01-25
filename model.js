@@ -6,6 +6,7 @@ var ATTRIBUTE_ARITY = {size: 2, skew: 2}
 var Model = function () {
 	this.startName = null;
 	this.rules = {};
+	this.randomGenerator = Math;
 };
 
 Model.prototype = {
@@ -35,7 +36,7 @@ Model.prototype = {
 
     choose: function (name) {
         rules = this.rules[name];
-        if (!rules) {print("No rule named " + name); return}
+        if (!rules) {error("No rule named " + name); return}
         if (rules.length == 1) return rules[0];
         var sum = rules._sum;
         if (!sum) {
@@ -44,7 +45,7 @@ Model.prototype = {
                 sum += rules[i].weight;
             rules._sum = sum;
         }
-        var r = Math.random() * sum;
+		var r = sum * this.randomGenerator.random();
         for (var i = 0; i < rules.length; i++)
             if ((r -= rules[i].weight) <= 0)
                 return rules[i];
