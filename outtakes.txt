@@ -1,0 +1,47 @@
+  class RVGWriter
+    attr_writer :rgb
+    def initialize(canvas)
+      @canvas = canvas
+      @rgb = 'black'
+    end
+    def polygon points
+      puts 'polygon'
+      p points
+      @canvas.polygon(points.flatten)#.styles(:fill => 'red')
+    end
+    def circle center, radius, matrix
+      puts 'circle'
+      @canvas.matrix(*matrix) do |local|
+        local.circle(center[0], center[1], radius)#.styles(:fill => @rgb)
+      end
+    end
+  end
+  
+  require 'rvg/rvg'
+  include Magick
+  
+  # returns file
+  def rvg_write
+    size = @width || 200
+    @xmin, @xmax, @ymin, @ymax = 0,1,0,1 unless @xmin
+    side = [@xmax-@xmin, @ymax-@ymin,0.001].max
+    cx, cy = (@xmin+@xmax)/2, (@ymin+@ymax)/2
+    scale = size.to_f/side
+    RVG::dpi = 72
+    p ['bounds', @xmin, @ymin, @xmax, @ymax]
+    rvg = RVG.new(2.5.in, 2.5.in).viewbox(@xmin, @ymin, @xmax, @ymax)  do |canvas|
+      #preserve_aspect_ratio('xMidYMid', 'meet')
+      canvas.background_fill = 'blue'
+      writer = RVGWriter.new canvas
+      @rvg.each do |msg|
+        writer.send *msg
+      end
+    end
+    
+    require 'tempfile'
+    dst = 'drawing.png'
+    File.delete(dst) rescue nil
+    rvg.draw.write(dst)
+    return dst
+  end
+  
