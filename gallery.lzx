@@ -1,16 +1,26 @@
 <library>
-  <class name="itemIcon" extends="hbox">
+  <class name="itemIcon" extends="vbox"
+	 onmouseover="setAttribute('hovered', true)"
+	 onmouseout="setAttribute('hovered', false)">
+    <attribute name="doc_id" value="$path{'@id'}"/>
+    <attribute name="hovered" value="false"/>
     <method event="onclick">
-      fileloaddata.setSrc(server + '/document/show/' + this.xid);
+      fileloaddata.setSrc(server + '/document/show/' + this.doc_id);
       fileloaddata.timeout = 5000;
       fileloaddata.doRequest();
       loadDialog.setAttribute('visible', false);
       appstate.setAttribute('loading', true);
       fileloaddata.data = null;
     </method>
-    <image datapath="@image"/>
+    <image datapath="@thumbnail"/>
     <text datapath="@name"/>
-    <attribute name="doc_id" value="$path{'@id'}"/>
+    <view width="0" height="0"
+	  visible="${parent.hovered}" options="ignorelayout">
+      <vbox name="inner">
+	<image datapath="@image"/>
+	<text fontsize="18" datapath="@name"/>
+      </vbox>
+    </view>
   </class>
   
   <dataset name="filelistdata"
@@ -27,7 +37,7 @@
   
   <window id="loadDialog" title="Open..."
           visible="false" closeable="true"
-          options="ignorelayout" width="200">
+          options="ignorelayout">
     <attribute name="gallery_loaded" value="false"/>
     <method name="show">
       setAttribute('visible', true);
@@ -36,7 +46,7 @@
       filelistdata.doRequest();
     </method>
     <text visible="${!loadDialog.gallery_loaded}">Loading gallery...</text>
-    <view height="150" datapath="filelistdata:/documents">
+    <view id="v1" width="500" height="500" datapath="filelistdata:/documents">
       <wrappinglayout/>
       <itemIcon datapath="document"/>
     </view>

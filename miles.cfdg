@@ -18,6 +18,7 @@ rule tree {
 }
 
 rule section {
-	CIRCLE {}
-	tree {size 0.90 y 1.6}
+	CIRCLE {sat 1 b .2 hue 1}
+	tree {size 0.90 y 1.6
+		sat 1 b .1 hue 3}
 }
