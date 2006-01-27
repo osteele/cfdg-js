@@ -1,4 +1,57 @@
 <library>
+  <include href="incubator/validatingform" />
+  <include href="incubator/formlayout.lzx" />
+  
+  <modaldialog id="signinDialog" visible="false" title="${this.register ? 'Register' : 'Sign In'}">
+    <attribute name="register" value="false"/>
+    <validatingform id="myform">
+      <attribute name="register" value="${parent.register}"/>
+      <submit name="survey" data="${loginds}"/>
+      <formlayout spacing="10" />
+      
+      <text resize="true" text="${parent.register ? 'name (5~20 chars):' : 'name:'}"/>
+      <stringvalidator required="true" minLength="3" maxLength="40">
+	<edittext id="userField" name="user" />
+      </stringvalidator>
+      
+      <text visible="${parent.register}">E-mail:</text>
+      <emailvalidator visible="${parent.register}" required="false">
+	<edittext name="email" />
+      </emailvalidator>
+      
+      <text>Password:</text>
+      <stringvalidator required="true">
+	<edittext id="passwordField" name="password" password="true"/>
+      </stringvalidator>
+      
+      <text visible="${parent.register}">Password (confirmation):</text>
+      <stringvalidator visible="${parent.register}" required="${this.visible}">
+	<edittext name="password_confirm"/>
+      </stringvalidator>
+      <button visible="${!signinDialog.register}" onclick="signinDialog.setAttribute('register', true)">Register</button>
+      <hbox>
+	<button>
+	  Sign in
+	  <method event="onclick"><![CDATA[
+	    var rtn = myform.doValidation();
+	    if (rtn) {
+	      Debug.write("ok - submitted");
+	      signinDialog.setVisible(false);
+	      if (signinDialog.register) {
+	        myform.submit.submit();
+  	        loginds.setSrc(server + '/user/signup');
+	      } else
+  	        login(userField.getText(), passwordField.getText());
+	    } else {
+	      Debug.write("validation error");
+	    }
+	  ]]></method>
+	</button>
+	<button onclick="signinDialog.setVisible(false)">Cancel</button>
+      </hbox>
+    </validatingform>
+  </modaldialog>
+  
   <dataset name="loginds"/>
   <!-- loginds.ondata -->
   <method event="onidle" reference="LzIdle"><![CDATA[
@@ -11,14 +64,14 @@
   ]]></method>
   
   <script><![CDATA[
-    function doLogin(name, passwd) {
+    function login(name, passwd) {
       loginds.setSrc(server + '/user/login');
       loginds.setQueryType('POST');
       loginds.setQueryParam('login', name);
       loginds.setQueryParam('password', passwd);
       loginds.doRequest();
     }
-    function doLogout(name, passwd) {
+    function logout() {
       loginds.setSrc(server + '/user/logout');
       loginds.doRequest();
     }
@@ -26,6 +79,12 @@
       loginds.setSrc(server + '/user/whoami');
       loginds.doRequest();
     }
-    //whoami();
+    function doSignin() {
+      signinDialog.setVisible(true);
+      signinDialog.setAttribute('register', false);
+    }
+    function doSignout() {
+      logout();
+    }
   ]]></script>
 </library>

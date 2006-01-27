@@ -33,14 +33,14 @@
     <roundrectbutton height="20" visible="${!document.doc_id || document.user_id == appstate.user_id}"
 		     onclick="doSave()">Save</roundrectbutton>
     <roundrectbutton height="20" visible="${document.doc_id != null}"
-		     onclick="doSaveAs">Save as...</roundrectbutton>
+		     onclick="doSaveAs()">Save as...</roundrectbutton>
+    <view visible="${!appstate.user_name}" align="right" options="ignorelayout">
+      <roundrectbutton height="20" onclick="doSignin(this)">Sign in/Register</roundrectbutton>
+    </view>
     <hbox visible="${appstate.user_name}" align="right" options="ignorelayout">
       <text resize="true" text="${appstate.user_name}"/>
-      <roundrectbutton height="20" onclick="doLogout()">Sign out</roundrectbutton>
+      <roundrectbutton height="20" onclick="doSignout()">Sign out</roundrectbutton>
     </hbox>
-    <view visible="${!appstate.user_name}" align="right" options="ignorelayout">
-      <roundrectbutton height="20" onclick="doSignin()">Sign in/Register</roundrectbutton>
-    </view>
   </hbox>
   
   <text width="100%" height="20" id="statusField"/>

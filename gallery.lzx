@@ -22,7 +22,7 @@
   <dataset name="filelistdata"
            ondata="loadDialog.setAttribute('gallery_loaded', true)"/>
   
-  <window id="loadDialog" title="Open..."
+  <modaldialog id="loadDialog" title="Open..."
           visible="false" closeable="true"
 	  align="center" y="10%"
           options="ignorelayout">
@@ -38,9 +38,9 @@
       <wrappinglayout/>
       <itemIcon datapath="document"/>
     </view>
-  </window>
+  </modaldialog>
   
-  <window id="saveDialog" title="Save"
+  <modaldialog id="saveDialog" title="Save"
           visible="false" align="center" y="20%"
           options="ignorelayout" layout="axis: y">
     <hbox>
@@ -59,7 +59,7 @@
         Cancel
       </roundrectbutton>
     </hbox>
-  </window>
+  </modaldialog>
   
   <view x="33%" y="33%" width="50%" height="100" bgcolor="blue"
 	visible="${appstate.loading}">
@@ -67,16 +67,17 @@
   </view>
   
   <dataset name="fileloaddata"
-           ondata="Debug.write('ondata');
+           ondata="Debug.write('fileloaddata.ondata');
                    sourceField.setText(fileloaddata.data.childNodes[0].data);
                    appstate.setAttribute('loading', false);"
-           onerror="Debug.write('onerror');
+           onerror="Debug.write('fileloaddata.onerror');
                     appstate.setAttribute('loading', false);"
-           ontimeout="Debug.write('onerror');
+           ontimeout="Debug.write('fileloaddata.ontimeout');
                     appstate.setAttribute('loading', false);"/>
   <method event="onidle" reference="LzIdle"><![CDATA[
     if (!appstate.loading) return;
     if (!fileloaddata.data) return;
+    Debug.write('fileloaddata.data');
     appstate.setAttribute('loading', false);
     var data = fileloaddata.data;
     document.setAttribute('doc_name', data.attributes['name']);
