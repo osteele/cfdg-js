@@ -5,20 +5,16 @@
     <attribute name="doc_id" value="$path{'@id'}"/>
     <attribute name="hovered" value="false"/>
     <method event="onclick">
-      fileloaddata.setSrc(server + '/document/show/' + this.doc_id);
-      fileloaddata.timeout = 5000;
-      fileloaddata.doRequest();
+      loadDocument(this.doc_id);
       loadDialog.setAttribute('visible', false);
-      appstate.setAttribute('loading', true);
-      fileloaddata.data = null;
     </method>
     <image datapath="@thumbnail"/>
     <text datapath="@name"/>
     <view width="0" height="0"
 	  visible="${parent.hovered}" options="ignorelayout">
       <vbox name="inner">
-	<image datapath="@image"/>
-	<text fontsize="18" datapath="@name"/>
+	<image datapath="@image" align="center"/>
+	<text resize="true" fontsize="18" datapath="@name" align="center"/>
       </vbox>
     </view>
   </class>
@@ -26,17 +22,9 @@
   <dataset name="filelistdata"
            ondata="loadDialog.setAttribute('gallery_loaded', true)"/>
   
-  <dataset name="fileloaddata"
-           ondata="Debug.write('ondata');
-                   sourceField.setText(fileloaddata.data.childNodes[0].data);
-                   appstate.setAttribute('loading', false);"
-           onerror="Debug.write('onerror');
-                    appstate.setAttribute('loading', false);"
-           ontimeout="Debug.write('onerror');
-                    appstate.setAttribute('loading', false);"/>
-  
   <window id="loadDialog" title="Open..."
           visible="false" closeable="true"
+	  align="center" y="10%"
           options="ignorelayout">
     <attribute name="gallery_loaded" value="false"/>
     <method name="show">
@@ -52,10 +40,8 @@
     </view>
   </window>
   
-  <dataset name="filesaveds"
-           ondata="statusField.setText(filesaveds.data)"/>
   <window id="saveDialog" title="Save"
-          visible="false"
+          visible="false" align="center" y="20%"
           options="ignorelayout" layout="axis: y">
     <hbox>
       <text>Name: </text>
@@ -64,11 +50,8 @@
     <hbox>
       <roundrectbutton height="20" text="Save">
         <method event="onclick">
-          filesaveds.setSrc(server + '/document/save');
-          filesaveds.setQueryType('POST');
-          filesaveds.setQueryParam('name', nameField.getText());
-          filesaveds.setQueryParam('content', sourceField.getText());
-          filesaveds.doRequest();
+	  document.setAttribute('doc_name', nameField.getText());
+          saveCurrentDocument();
           saveDialog.setVisible(false);
         </method>
       </roundrectbutton>
@@ -78,6 +61,19 @@
     </hbox>
   </window>
   
+  <view x="33%" y="33%" width="50%" height="100" bgcolor="blue"
+	visible="${appstate.loading}">
+    <text resize="true" fontsize="18">Loading...</text>
+  </view>
+  
+  <dataset name="fileloaddata"
+           ondata="Debug.write('ondata');
+                   sourceField.setText(fileloaddata.data.childNodes[0].data);
+                   appstate.setAttribute('loading', false);"
+           onerror="Debug.write('onerror');
+                    appstate.setAttribute('loading', false);"
+           ontimeout="Debug.write('onerror');
+                    appstate.setAttribute('loading', false);"/>
   <method event="onidle" reference="LzIdle"><![CDATA[
     if (!appstate.loading) return;
     if (!fileloaddata.data) return;
@@ -92,4 +88,42 @@
       s += lines[i];
     sourceField.setText(s);
   ]]></method>
+  
+  <dataset name="filesaveds"
+           ondata="statusField.setText(filesaveds.data)"/>
+  <method event="onidle" reference="LzIdle"><![CDATA[
+    if (!filesaveds['data']) return;
+    var data = filesaveds.data;
+    filesaveds.data = null;
+    document.setAttribute('doc_id', data.attributes['id']);
+    document.setAttribute('user_id', data.attributes['user_id']);
+  ]]></method>
+  
+  <script><![CDATA[
+    function showGallery() {loadDialog.show()}
+    function doSave() {
+      if (!document.user_id) return doSaveAs();
+      saveCurrentDocument();
+    }
+    function doSaveAs() {
+      saveDialog.setAttribute('visible', true);
+    }
+    function saveCurrentDocument() {
+      filesaveds.setSrc(server + '/document/save');
+      filesaveds.setQueryType('POST');
+      if (document.doc_id && document.user_id == appstate.user_id)
+        filesaveds.setQueryParam('id', document.doc_id);
+      filesaveds.setQueryParam('name', document.doc_name);
+      filesaveds.setQueryParam('content', sourceField.getText());
+      filesaveds.doRequest();
+    }
+    function loadDocument(id) {
+      stopRendering();
+      fileloaddata.setSrc(server + '/document/load_document/' + id);
+      fileloaddata.timeout = 5000;
+      fileloaddata.doRequest();
+      appstate.setAttribute('loading', true);
+      fileloaddata.data = null;
+    }
+  ]]></script>
 </library>

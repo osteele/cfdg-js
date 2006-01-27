@@ -1,14 +1,7 @@
-Gallery:
-- you can "Save" if it's an item that you created
-- new "Save as" otherwise
-- "Save" asks you for a user name if you don't have one
-- server says who you are; gets it from the session
-caching:
-- when you save, the server forks a process to write an image file
-- admin to generate missing image files, and re-generate select files
-
-Top:
-- gallery
+- confirmation on save
+- select input box
+- prompt to sign in
+- sign out button
 
 Language features:
 - pipe

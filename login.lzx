@@ -1,0 +1,31 @@
+<library>
+  <dataset name="loginds"/>
+  <!-- loginds.ondata -->
+  <method event="onidle" reference="LzIdle"><![CDATA[
+    if (!loginds['data']) return;
+    var attrs = loginds.data.attributes;
+    appstate.setAttribute('user_id', attrs['id']);
+    appstate.setAttribute('user_name', attrs['name']);
+    if (attrs['msg']) Debug.write(attrs['msg']);
+    loginds.data = null;
+  ]]></method>
+  
+  <script><![CDATA[
+    function doLogin(name, passwd) {
+      loginds.setSrc(server + '/user/login');
+      loginds.setQueryType('POST');
+      loginds.setQueryParam('login', name);
+      loginds.setQueryParam('password', passwd);
+      loginds.doRequest();
+    }
+    function doLogout(name, passwd) {
+      loginds.setSrc(server + '/user/logout');
+      loginds.doRequest();
+    }
+    function whoami() {
+      loginds.setSrc(server + '/user/whoami');
+      loginds.doRequest();
+    }
+    //whoami();
+  ]]></script>
+</library>
