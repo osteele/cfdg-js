@@ -3,25 +3,25 @@
   <include href="incubator/formlayout.lzx" />
   
   <modaldialog id="signinDialog" visible="false"
-	       title="${this.register ? 'Register' : 'Sign In'}">
-    <attribute name="register" value="${rg.value==1}"/>
-    <vbox>
-      <radiogroup layout="axis: x" id="rg">
+               layout="axis: y"
+	       title="${this.registering ? 'Register' : 'Sign In'}">
+    <attribute name="registering" value="${radioGroup.value==1}"/>
+      <radiogroup layout="axis: x" id="radioGroup">
         <radiobutton value="1" text="I am a new user"/>
         <radiobutton value="2" text="I have an account" selected="true"/>
       </radiogroup>
       
       <validatingform id="myform">
-        <attribute name="register" value="${parent.register}"/>
+        <attribute name="registering" value="${parent.registering}"/>
         <formlayout spacing="10"/>
         
-        <text resize="true" text="${parent.register ? 'Name (5 to 20 chars):' : 'Name:'}"/>
+        <text resize="true" text="${parent.registering ? 'Name (5 to 20 chars):' : 'Name:'}"/>
         <stringvalidator required="true" minLength="3" maxLength="40">
           <edittext id="userField" name="user" />
         </stringvalidator>
         
-        <text visible="${parent.register}">Email (optional):</text>
-        <emailvalidator visible="${parent.register}" required="false">
+        <text visible="${parent.registering}">Email (optional):</text>
+        <emailvalidator visible="${parent.registering}" required="false">
           <edittext id="emailField" name="email" />
         </emailvalidator>
         
@@ -30,24 +30,33 @@
           <edittext id="passwordField" name="password" password="true"/>
         </stringvalidator>
         
-        <text visible="${parent.register}">Password (confirmation):</text>
-        <stringvalidator visible="${parent.register}" required="${this.visible}">
+        <text visible="${parent.registering}">Password (confirmation):</text>
+        <stringvalidator visible="${parent.registering}" required="${this.visible}">
           <edittext id="passwordConfirmation" name="password_confirm" password="true"/>
       </stringvalidator>
       <text resize="true" fgcolor="red" id="loginErrorField"/>
     </validatingform>
     
+    <text visible="${signinDialog.registering}" width="100%" multiline="true">
+      If you have an account on <a href="http://packagemapper.com"
+      target="_blank">PackageMapper.com</a>, you can use the same
+      login name and password here after you <a
+      href="http://packagemapper.com/user/login" target="_blank">sign
+      in there</a>.
+    </text>
+    
     <hbox spacing="10">
-      <stylishbutton text="${signinDialog.register ? 'Register' : 'Sign in'}">
+      <stylishbutton text="${signinDialog.registering ? 'Register' : 'Sign in'}">
         <method event="onclick"><![CDATA[
           loginErrorField.setText('');
           var valid = myform.doValidation();
           if (valid) {
-              if (passwordField.getText() != passwordConfirmation.getText()) {
+              if (signinDialog.registering &&
+                  passwordField.getText() != passwordConfirmation.getText()) {
                 passwordConfirmation.parent.setErrorstring('This field must match the password.');
                 return;
               }
-	      if (signinDialog.register) {
+	      if (signinDialog.registering) {
   	        registerUser(userField.getText(), passwordField.getText(),
                   passwordConfirmation.getText(), emailField.getText());
 	      } else
@@ -59,7 +68,6 @@
       </stylishbutton>
       <stylishbutton onclick="signinDialog.setVisible(false)">Cancel</stylishbutton>
     </hbox>
-    </vbox>
   </modaldialog>
   
   <dataset name="loginds" src="http:stub"/>
