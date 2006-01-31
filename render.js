@@ -22,7 +22,7 @@ Graphics.prototype.setRGB = function (rgb) {
 };
 
 var currentContext = null;
-function doRender() {
+function startRendering() {
 	dv.reset();
 	shapeCount = 0;
 	var t0 = (new Date).getTime();

@@ -2,44 +2,52 @@
   <include href="incubator/validatingform" />
   <include href="incubator/formlayout.lzx" />
   
-  <modaldialog id="signinDialog" visible="false" title="${this.register ? 'Register' : 'Sign In'}">
-    <attribute name="register" value="false"/>
+  <modaldialog id="signinDialog" visible="false"
+	       title="${this.register ? 'Register' : 'Sign In'}">
+    <attribute name="register" value="${rg.value==1}"/>
+    <simplelayout axis="y"/>
+    <radiogroup layout="axis: x" id="rg">
+      <radiobutton value="1" text="I am a new user"/>
+      <radiobutton value="2" text="I have an account" selected="true"/>
+    </radiogroup>
+    
     <validatingform id="myform">
       <attribute name="register" value="${parent.register}"/>
-      <submit name="survey" data="${loginds}"/>
       <formlayout spacing="10" />
       
-      <text resize="true" text="${parent.register ? 'name (5~20 chars):' : 'name:'}"/>
+      <text resize="true" text="${parent.register ? 'Name (5 to 20 chars):' : 'Name:'}"/>
       <stringvalidator required="true" minLength="3" maxLength="40">
 	<edittext id="userField" name="user" />
       </stringvalidator>
       
-      <text visible="${parent.register}">E-mail:</text>
+      <text visible="${parent.register}">Email (optional):</text>
       <emailvalidator visible="${parent.register}" required="false">
-	<edittext name="email" />
+	<edittext id="emailField" name="email" />
       </emailvalidator>
       
       <text>Password:</text>
-      <stringvalidator required="true">
+      <stringvalidator required="true" minLength="5">
 	<edittext id="passwordField" name="password" password="true"/>
       </stringvalidator>
       
       <text visible="${parent.register}">Password (confirmation):</text>
       <stringvalidator visible="${parent.register}" required="${this.visible}">
-	<edittext name="password_confirm"/>
+	<edittext id="passwordConfirmation" name="password_confirm" password="true"/>
       </stringvalidator>
-      <button visible="${!signinDialog.register}" onclick="signinDialog.setAttribute('register', true)">Register</button>
+      <text resize="true" fgcolor="red" id="loginErrorField"/>
       <hbox>
-	<button>
-	  Sign in
+	<button text="${signinDialog.register ? 'Register' : 'Sign in'}">
 	  <method event="onclick"><![CDATA[
-	    var rtn = myform.doValidation();
-	    if (rtn) {
-	      Debug.write("ok - submitted");
-	      signinDialog.setVisible(false);
+            loginErrorField.setText('');
+	    var valid = myform.doValidation();
+	    if (valid) {
+              if (passwordField.getText() != passwordConfirmation.getText()) {
+                passwordConfirmation.parent.setErrorstring('This field must match the password.');
+                return;
+              }
 	      if (signinDialog.register) {
-	        myform.submit.submit();
-  	        loginds.setSrc(server + '/user/signup');
+  	        registerUser(userField.getText(), passwordField.getText(),
+                  passwordConfirmation.getText(), emailField.getText());
 	      } else
   	        login(userField.getText(), passwordField.getText());
 	    } else {
@@ -52,15 +60,29 @@
     </validatingform>
   </modaldialog>
   
-  <dataset name="loginds"/>
-  <!-- loginds.ondata -->
-  <method event="onidle" reference="LzIdle"><![CDATA[
-    if (!loginds['data']) return;
+  <dataset name="loginds" src="http:stub"/>
+  <method event="ondata" reference="loginds"><![CDATA[
     var attrs = loginds.data.attributes;
+    Debug.write(loginds.data);
+    if (attrs['msg']) {
+      var hash = {'Login': userField, 'Password': passwordField,
+                  'Email': emailField}
+      var lines = attrs['msg'].split("\n");
+      var untold = [];
+      for (var i in lines) {
+        var line = lines[i];
+        var field = hash[line.split(' ')[0]];
+        if (field)
+          field.parent.setErrorstring(line);
+        else
+          untold.push(line);
+      }
+      if (untold) loginErrorField.setText(untold.join("\n"));
+      return;
+    }
     appstate.setAttribute('user_id', attrs['id']);
     appstate.setAttribute('user_name', attrs['name']);
-    if (attrs['msg']) Debug.write(attrs['msg']);
-    loginds.data = null;
+    signinDialog.setVisible(false);
   ]]></method>
   
   <script><![CDATA[
@@ -75,13 +97,22 @@
       loginds.setSrc(server + '/user/logout');
       loginds.doRequest();
     }
+    function registerUser(name, passwd, confirm, email) {
+      loginds.setSrc(server + '/user/register');
+      loginds.setQueryType('POST');
+      loginds.setQueryParam('user[login]', name);
+      loginds.setQueryParam('user[password]', passwd);
+      loginds.setQueryParam('user[password]_confirmation', confirm);
+      loginds.setQueryParam('user[email]', email);
+      loginds.doRequest();
+    }
     function whoami() {
       loginds.setSrc(server + '/user/whoami');
       loginds.doRequest();
     }
     function doSignin() {
       signinDialog.setVisible(true);
-      signinDialog.setAttribute('register', false);
+      loginErrorField.setText('');
     }
     function doSignout() {
       logout();

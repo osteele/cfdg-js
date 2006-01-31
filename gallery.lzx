@@ -1,7 +1,10 @@
 <library>
   <include href="rpc/ajax.lzx"/>
   <class name="itemIcon" extends="vbox"
-	 onmouseover="setAttribute('hovered', true)"
+	 onmouseover="setAttribute('hovered', true);
+                      zzi.setAttribute('src', im);
+                      zzc.setText(ic);
+                      zzl.setText(titleA.getText())"
 	 onmouseout="setAttribute('hovered', false)">
     <attribute name="doc_id" value="$path{'@id'}"/>
     <attribute name="hovered" value="false"/>
@@ -10,14 +13,9 @@
       loadDialog.setAttribute('visible', false);
     </method>
     <image datapath="@thumbnail"/>
-    <text datapath="@name"/>
-    <view width="0" height="0"
-	  visible="${parent.hovered}" options="ignorelayout">
-      <vbox name="inner">
-	<image datapath="@image" align="center"/>
-	<text resize="true" fontsize="18" datapath="@name" align="center"/>
-      </vbox>
-    </view>
+    <text name="titleA" datapath="@name"/>
+    <attribute name="im" value="$path{'@image'}"/>
+    <attribute name="ic" value="$path{'@creator'}"/>
   </class>
   
   <dataset name="filelistdata" src="http:stub"
@@ -25,7 +23,7 @@
   
   <modaldialog id="loadDialog" title="Open..."
           visible="false" closeable="true"
-	  align="center" y="10%"
+	  align="center" y="10%" layout="axis: y"
           options="ignorelayout">
     <attribute name="gallery_loaded" value="false"/>
     <method name="show">
@@ -34,14 +32,22 @@
       filelistdata.setSrc(server + "/document/list");
       filelistdata.doRequest();
     </method>
-    <text visible="${!loadDialog.gallery_loaded}">Loading gallery...</text>
-    <view id="v1" width="500" height="500" datapath="filelistdata:/documents">
-      <wrappinglayout/>
-      <itemIcon datapath="document"/>
-    </view>
+    <text visible="${!loadDialog.gallery_loaded}" options="ignoreslayout">Loading gallery...</text>
+    <vbox id="v1" width="500" height="400" datapath="filelistdata:/documents">
+      <text multiline="true" width="100%">Click an image to load it.  (Replaces current document.)</text>
+      <view width="100%" height="350">
+        <wrappinglayout/>
+        <itemIcon datapath="document"/>
+      </view>
+      <hbox id="zz" options="ignorelayout" valign="bottom">
+        <image id="zzi"/>
+        <text id="zzl" resize="true" fontsize="18"/>
+        <text id="zzc" resize="true" fontsize="14"/>
+      </hbox>
+    </vbox>
   </modaldialog>
   
-  <modaldialog id="saveDialog" title="Save"
+  <modaldialog id="saveDialog" title="Save as..."
           visible="false" align="center" y="20%"
           options="ignorelayout" layout="axis: y">
     <hbox>
@@ -101,6 +107,7 @@
       for (var i = 0; i < lines.length; i++)
         s += lines[i];
       sourceField.setText(s);
+      startRendering();
     }
   ]]></script>
   

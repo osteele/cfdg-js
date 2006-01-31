@@ -26,7 +26,7 @@
   
   <hbox width="100%" height="20" spacing="10">
     <view>
-      <roundrectbutton height="20" onclick="doRender()" visible="${!appstate.rendering}">Draw</roundrectbutton>
+      <roundrectbutton height="20" onclick="startRendering()" visible="${!appstate.rendering}">Draw</roundrectbutton>
       <roundrectbutton height="20" onclick="stopRendering()" visible="${appstate.rendering}">Stop</roundrectbutton>
     </view>
     <roundrectbutton height="20" onclick="showGallery()">Gallery</roundrectbutton>
@@ -39,11 +39,12 @@
     </view>
     <hbox visible="${appstate.user_name}" align="right" options="ignorelayout">
       <text resize="true" text="${appstate.user_name}"/>
-      <roundrectbutton height="20" onclick="doSignout()">Sign out</roundrectbutton>
+      <roundrectbutton visible="${appstate.user_name}" height="20" onclick="doSignout()">Sign out</roundrectbutton>
     </hbox>
   </hbox>
   
   <text width="100%" height="20" id="statusField"/>
+  <text width="100%" fontsize="18" text="${document.doc_name}"/>
   <hbox width="100%" height="${parent.height-40}">
     <view width="30%" height="100%">
       <scrolledittext id="sourceField" width="100%" height="200%" multiline="true">
