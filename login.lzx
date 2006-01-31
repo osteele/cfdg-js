@@ -5,42 +5,44 @@
   <modaldialog id="signinDialog" visible="false"
 	       title="${this.register ? 'Register' : 'Sign In'}">
     <attribute name="register" value="${rg.value==1}"/>
-    <simplelayout axis="y"/>
-    <radiogroup layout="axis: x" id="rg">
-      <radiobutton value="1" text="I am a new user"/>
-      <radiobutton value="2" text="I have an account" selected="true"/>
-    </radiogroup>
-    
-    <validatingform id="myform">
-      <attribute name="register" value="${parent.register}"/>
-      <formlayout spacing="10" />
+    <vbox>
+      <radiogroup layout="axis: x" id="rg">
+        <radiobutton value="1" text="I am a new user"/>
+        <radiobutton value="2" text="I have an account" selected="true"/>
+      </radiogroup>
       
-      <text resize="true" text="${parent.register ? 'Name (5 to 20 chars):' : 'Name:'}"/>
-      <stringvalidator required="true" minLength="3" maxLength="40">
-	<edittext id="userField" name="user" />
-      </stringvalidator>
-      
-      <text visible="${parent.register}">Email (optional):</text>
-      <emailvalidator visible="${parent.register}" required="false">
-	<edittext id="emailField" name="email" />
-      </emailvalidator>
-      
-      <text>Password:</text>
-      <stringvalidator required="true" minLength="5">
-	<edittext id="passwordField" name="password" password="true"/>
-      </stringvalidator>
-      
-      <text visible="${parent.register}">Password (confirmation):</text>
-      <stringvalidator visible="${parent.register}" required="${this.visible}">
-	<edittext id="passwordConfirmation" name="password_confirm" password="true"/>
+      <validatingform id="myform">
+        <attribute name="register" value="${parent.register}"/>
+        <formlayout spacing="10"/>
+        
+        <text resize="true" text="${parent.register ? 'Name (5 to 20 chars):' : 'Name:'}"/>
+        <stringvalidator required="true" minLength="3" maxLength="40">
+          <edittext id="userField" name="user" />
+        </stringvalidator>
+        
+        <text visible="${parent.register}">Email (optional):</text>
+        <emailvalidator visible="${parent.register}" required="false">
+          <edittext id="emailField" name="email" />
+        </emailvalidator>
+        
+        <text>Password:</text>
+        <stringvalidator required="true" minLength="5">
+          <edittext id="passwordField" name="password" password="true"/>
+        </stringvalidator>
+        
+        <text visible="${parent.register}">Password (confirmation):</text>
+        <stringvalidator visible="${parent.register}" required="${this.visible}">
+          <edittext id="passwordConfirmation" name="password_confirm" password="true"/>
       </stringvalidator>
       <text resize="true" fgcolor="red" id="loginErrorField"/>
-      <hbox>
-	<button text="${signinDialog.register ? 'Register' : 'Sign in'}">
-	  <method event="onclick"><![CDATA[
-            loginErrorField.setText('');
-	    var valid = myform.doValidation();
-	    if (valid) {
+    </validatingform>
+    
+    <hbox spacing="10">
+      <stylishbutton text="${signinDialog.register ? 'Register' : 'Sign in'}">
+        <method event="onclick"><![CDATA[
+          loginErrorField.setText('');
+          var valid = myform.doValidation();
+          if (valid) {
               if (passwordField.getText() != passwordConfirmation.getText()) {
                 passwordConfirmation.parent.setErrorstring('This field must match the password.');
                 return;
@@ -53,11 +55,11 @@
 	    } else {
 	      Debug.write("validation error");
 	    }
-	  ]]></method>
-	</button>
-	<button onclick="signinDialog.setVisible(false)">Cancel</button>
-      </hbox>
-    </validatingform>
+            ]]></method>
+      </stylishbutton>
+      <stylishbutton onclick="signinDialog.setVisible(false)">Cancel</stylishbutton>
+    </hbox>
+    </vbox>
   </modaldialog>
   
   <dataset name="loginds" src="http:stub"/>

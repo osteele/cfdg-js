@@ -1,30 +1,41 @@
 <library>
   <include href="rpc/ajax.lzx"/>
+  <include href="incubator/stylishbutton.lzx"/>
   <class name="itemIcon" extends="vbox"
-	 onmouseover="setAttribute('hovered', true);
-                      zzi.setAttribute('src', im);
-                      zzc.setText(ic);
-                      zzl.setText(titleA.getText())"
-	 onmouseout="setAttribute('hovered', false)">
+	 onmouseover="zoomImage.setAttribute('src', doc_image);
+                      zoomAttributes.setAttribute('doc_id', doc_id);
+                      zoomAttributes.doc_name.setText(doc_name.getText());
+                      zoomAttributes.doc_author.setText(doc_author);
+                      zoomAttributes.doc_ctime.setText(doc_ctime);
+                      zoomAttributes.doc_mtime.setText(doc_mtime);
+                      ">
     <attribute name="doc_id" value="$path{'@id'}"/>
-    <attribute name="hovered" value="false"/>
+    <image datapath="@thumbnail"/>
+    <text name="doc_name" datapath="@name"/>
+    <attribute name="doc_image" value="$path{'@image'}"/>
+    <attribute name="doc_author" value="$path{'@author'}"/>
+    <attribute name="doc_ctime" value="$path{'@ctime'}"/>
+    <attribute name="doc_mtime" value="$path{'@mtime'}"/>
     <method event="onclick">
-      loadDocument(this.doc_id);
+      loadDocument(doc_id);
       loadDialog.setAttribute('visible', false);
     </method>
-    <image datapath="@thumbnail"/>
-    <text name="titleA" datapath="@name"/>
-    <attribute name="im" value="$path{'@image'}"/>
-    <attribute name="ic" value="$path{'@creator'}"/>
+  </class>
+  
+  <class name="labeled" extends="hbox">
+    <attribute name="label" type="string" value=""/>
+    <attribute name="text" type="text" value=""/>
+    <text width="50" fontstyle="bold" text="${parent.label}"/>
+    <text text="${parent.text}" resize="true"/>
   </class>
   
   <dataset name="filelistdata" src="http:stub"
            ondata="loadDialog.setAttribute('gallery_loaded', true)"/>
   
-  <modaldialog id="loadDialog" title="Open..."
+  <modaldialog id="loadDialog" title="Gallery"
           visible="false" closeable="true"
-	  align="center" y="10%" layout="axis: y"
-          options="ignorelayout">
+	  layout="axis: y"
+          >
     <attribute name="gallery_loaded" value="false"/>
     <method name="show">
       setAttribute('visible', true);
@@ -33,39 +44,55 @@
       filelistdata.doRequest();
     </method>
     <text visible="${!loadDialog.gallery_loaded}" options="ignoreslayout">Loading gallery...</text>
+    <text>Click on an image to load it.  This will replace the current document.</text>
     <vbox id="v1" width="500" height="400" datapath="filelistdata:/documents">
-      <text multiline="true" width="100%">Click an image to load it.  (Replaces current document.)</text>
       <view width="100%" height="350">
         <wrappinglayout/>
         <itemIcon datapath="document"/>
       </view>
-      <hbox id="zz" options="ignorelayout" valign="bottom">
-        <image id="zzi"/>
-        <text id="zzl" resize="true" fontsize="18"/>
-        <text id="zzc" resize="true" fontsize="14"/>
+      <hbox options="ignorelayout" valign="bottom"
+            visible="${zoomAttributes.doc_id != null}">
+        <image id="zoomImage" width="150" height="150"/>
+        <vbox id="zoomAttributes">
+          <attribute name="doc_id" value="null"/>
+          <labeled name="doc_name" label="Name:"/>
+          <labeled name="doc_author" label="Author:"
+                   visible="${doc_author.text}"/>
+          <labeled name="doc_modified" label="Modified:"
+                   visible="${doc_ctime.text != doc_mtime.text}"/>
+          <labeled name="doc_created" label="Created:"/>
+          <stylishbutton text="Open">
+            <method event="onclick">
+              loadDocument(parent.doc_id);
+              loadDialog.setAttribute('visible', false);
+            </method>
+          </stylishbutton>
+        </vbox>
       </hbox>
     </vbox>
   </modaldialog>
   
   <modaldialog id="saveDialog" title="Save as..."
-          visible="false" align="center" y="20%"
-          options="ignorelayout" layout="axis: y">
+          visible="false"
+          layout="axis: y; spacing: 5">
     <hbox>
       <text>Name: </text>
       <edittext id="nameField" width="140" text="${document.doc_name}"/>
     </hbox>
-    <hbox>
-      <roundrectbutton height="20" text="Save">
+    <hbox spacing="10">
+      <stylishbutton text="Save">
         <method event="onclick">
 	  document.setAttribute('doc_name', nameField.getText());
           saveCurrentDocument();
-          saveDialog.setVisible(false);
         </method>
-      </roundrectbutton>
-      <roundrectbutton height="20" onclick="saveDialog.setVisible(false)">
+      </stylishbutton>
+      <stylishbutton height="20" onclick="saveDialog.setVisible(false)">
         Cancel
-      </roundrectbutton>
+      </stylishbutton>
     </hbox>
+    <text visible="${!appstate.user_id}" bgcolor="yellow">
+      If you sign in first, you can edit this document later.
+    </text>
   </modaldialog>
   
   <script><![CDATA[
@@ -111,13 +138,24 @@
     }
   ]]></script>
   
+  <modaldialog id="errorDialog" layout="axis: y" bgcolor="yellow">
+    <text name="message" width="100%" multiline="true"/>
+    <stylishbutton onclick="parent.setVisible(false)">Okay</stylishbutton>
+  </modaldialog>
+  
   <dataset name="filesaveds" src="http:stub"
            ondata="fileSaved()"/>
   <script><![CDATA[
     function fileSaved() {
       var data = filesaveds.data;
-      document.setAttribute('doc_id', data.attributes['id']);
-      document.setAttribute('user_id', data.attributes['user_id']);
+      var attrs = data.attributes;
+      if (attrs['message']) {
+        errorDialog.message.setText(attrs['message']);
+        errorDialog.setVisible(true);
+        return;
+      }
+      document.setAttribute('doc_id', attrs['id']);
+      document.setAttribute('user_id', attrs['user_id']);
     }
   ]]></script>
   

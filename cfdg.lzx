@@ -30,21 +30,26 @@
       <roundrectbutton height="20" onclick="stopRendering()" visible="${appstate.rendering}">Stop</roundrectbutton>
     </view>
     <roundrectbutton height="20" onclick="showGallery()">Gallery</roundrectbutton>
-    <roundrectbutton height="20" visible="${!document.doc_id || document.user_id == appstate.user_id}"
+    <roundrectbutton height="20" visible="${!document.doc_id || (document.user_id &amp;&amp; document.user_id == appstate.user_id)}"
 		     onclick="doSave()">Save</roundrectbutton>
     <roundrectbutton height="20" visible="${document.doc_id != null}"
 		     onclick="doSaveAs()">Save as...</roundrectbutton>
     <view visible="${!appstate.user_name}" align="right" options="ignorelayout">
-      <roundrectbutton height="20" onclick="doSignin(this)">Sign in/Register</roundrectbutton>
+      <roundrectbutton height="20" width="120" onclick="doSignin(this)">Sign in/Register</roundrectbutton>
     </view>
-    <hbox visible="${appstate.user_name}" align="right" options="ignorelayout">
+    <hbox visible="${appstate.user_name}" align="right"
+          spacing="5" options="ignorelayout">
+      <text visible="${appstate.user_name}"><b>User:</b></text>
       <text resize="true" text="${appstate.user_name}"/>
       <roundrectbutton visible="${appstate.user_name}" height="20" onclick="doSignout()">Sign out</roundrectbutton>
     </hbox>
   </hbox>
   
   <text width="100%" height="20" id="statusField"/>
-  <text width="100%" fontsize="18" text="${document.doc_name}"/>
+  <hbox visible="${document.doc_name}">
+    <text fontsize="18"><b>Document:</b></text>
+    <text width="80%" fontsize="18" text="${document.doc_name}"/>
+  </hbox>
   <hbox width="100%" height="${parent.height-40}">
     <view width="30%" height="100%">
       <scrolledittext id="sourceField" width="100%" height="200%" multiline="true">
