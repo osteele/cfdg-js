@@ -12,6 +12,13 @@ String.prototype.split2 = function (a, b) {
 String.prototype.lines = function () {return this.split2('\r', '\n');};
 String.prototype.words = function () {return this.split2(' ', '\t');};
 
+Array.prototype.include = function (item) {
+	for (var i = this.length; --i >= 0; )
+		if (this[i] == item)
+			return true;
+	return false;
+};
+
 function lex(text, parser) {
     parser = parser || {receive: function (type, token) {info(type, ": '" + token + "'")}};
 	var lines = text.lines();
@@ -43,6 +50,15 @@ function lex(text, parser) {
 			if (('0' <= c0 && c0 <= '9') || ".-".indexOf(c0) >= 0) {
 				type = '<number>';
                 token = Number(word);
+				while (words.length && (words[0][0]=='*' || words[0][0]=='/')) {
+					var w2 = words[0].length > 1 ? words.slice(1) : words[1];
+					var c0 = w2.charAt(0);
+					if (('0' <= c0 && c0 <= '9') || '.-'.indexOf(c0) >= 0) {
+						token = words[0][0]=='*' ? token * Number(w2) : token / Number(w2);
+						words.shift();
+						if (words[0].length == 1) words.shift();
+					}
+				}
             }
 			var msg = parser.receive(type, token);
 			if (msg) return {message: msg, lineno: i+1, token: token}
@@ -85,6 +101,16 @@ Parser.prototype = {
 	
 	set_initial_state: function () {
 		this.expect('rule', this.rule,
+					'background', function () {
+						this.expect('{', function () {
+										this.builder.start_background();
+										this.attributes_handle = {
+											rule: this.rule
+										};
+										this.end_punctuation = '}';
+										this.expect_attribute_name();
+									});
+					},
 					'startshape', function () {
 						this.expect('<string>', function (name) {
 										this.builder.startshape(name);
@@ -109,11 +135,13 @@ Parser.prototype = {
 		this.builder.start_child(name);
 		this.expect('{', function () {
 						this.builder.start_attribute_set();
+						this.attributes_handle = this.rule_body_transitions;
 						this.end_punctuation = '}';
 						this.expect_attribute_name();
 					},
 					'[', function () {
 						this.builder.start_attribute_list();
+						this.attributes_handle = this.rule_body_transitions;
 						this.end_punctuation = ']';
 						this.expect_attribute_name()});
 	},
@@ -122,7 +150,7 @@ Parser.prototype = {
 		this.expect('<string>', this.attribute_name,
 					this.end_punctuation, function () {
 						this.builder.end_attributes();
-						this.transitions = this.rule_body_transitions;
+						this.transitions = this.attributes_handle;
 					});
 	},
 	
@@ -189,6 +217,12 @@ Builder.prototype = {
 		this.set_attribute_handlers(this.attribute_handlers.list);
 	},
 	
+	start_background: function () {
+		//info('builder: background');
+		this.attributeSet = {};
+		this.set_attribute_handlers(this.attribute_handlers.background);
+	},
+	
 	set_attribute_handlers: function (table) {
 		for (var key in table)
 			this[key] = table[key];
@@ -225,6 +259,18 @@ Builder.prototype = {
 			end_attributes: function () {
 				this.call.setAttributeList(this.attributeList);
 			}
+		},
+		
+		background: {
+			add_attribute_helper: function (name, value) {
+				if (!BACKGROUND_ATTRIBUTE_NAMES.include(name))
+					return "Invalid attribute name: " + name;
+				this.attributeSet[name] = value;
+			},
+			
+			end_attributes: function () {
+				this.model.setBackground(this.attributeSet);
+			}
 		}
 	},
 	
@@ -234,10 +280,8 @@ Builder.prototype = {
 			name = ATTRIBUTE_NAME_SYNONYMS[name];
         if (ATTRIBUTE_ARITY[name] == 2)
             value = [value, value];
-        var found = false;
-        for (var i = 0; i < ATTRIBUTE_NAMES.length; i++)
-            if (ATTRIBUTE_NAMES[i] == name) found = true;
-        if (!found) return "Invalid attribute name: " + name;
+		if (!ATTRIBUTE_NAMES.include(name))
+			return "Invalid attribute name: " + name;
 		this.add_attribute_helper(name, value);
 	},
 	

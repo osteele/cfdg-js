@@ -1,12 +1,11 @@
-- confirmation on save
-- select input box
-- prompt to sign in
-- sign out button
+Next:
+- octopus is missing
+- attributes too narrow
+- alpha
 
 Language features:
 - pipe
 - include
-- background
 
 Web Features:
 - email
@@ -14,10 +13,8 @@ Web Features:
 - PDF
 
 Polish:
-- default color tree
 - instructions on main page
 - inline syntax errors
-- copyright
 - examples menu
 - auto-color
 - "strict" mode
@@ -50,5 +47,6 @@ case sensitive rules
 missing rules
 =======
 - case sensitivity?
+
 
 >>>>>>> a201eda... factor gallery file, add document and user_id state:notes.txt

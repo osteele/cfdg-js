@@ -1,12 +1,14 @@
 // translate rotate scale skew reflect
 var ATTRIBUTE_NAMES = 'x y rotate size sx sy skew flip hue sat brightness'.split(' ');
 var ATTRIBUTE_NAME_SYNONYMS = {s: 'size', r: 'rotate', b: 'brightness', h: 'hue'};
+var BACKGROUND_ATTRIBUTE_NAMES = 'hue sat brightness'.split(' ');
 var ATTRIBUTE_ARITY = {size: 2, skew: 2}
 
 var Model = function () {
 	this.startName = null;
 	this.rules = {};
 	this.randomGenerator = Math;
+	this.background = {hue: 0, sat: 0, brightness: 1};
 };
 
 Model.prototype = {
@@ -34,6 +36,11 @@ Model.prototype = {
 		return s;
 	},
 
+	setBackground: function (attributes) {
+		for (var name in attributes)
+			this.background[name] = attributes[name];
+	},
+	
     choose: function (name) {
         rules = this.rules[name];
         if (!rules) {error("No rule named " + name); return}

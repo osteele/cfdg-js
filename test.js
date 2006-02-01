@@ -2,7 +2,14 @@ load('parser.js');
 load('model.js');
 load('graphics.js');
 load("drawing.js");
-Debug = {write: function(a) {print(a)}};
+function info(msg) {print('Info: ' + msg)}
+function error(msg) {print('Error: ' + msg)}
+Graphics.prototype.drawPolygon = function (points) {
+	print("polygon: " + points);
+};
+Graphics.prototype.drawCircle = function (center, radius, transform) {
+	print("circle: " + transform.transformPoints(center));
+};
 
 function parse(string, mode) {
 	var m = new Model;
@@ -20,6 +27,5 @@ function draw(string) {
     return parse(string, 'draw')
 }
 
-//draw("rule R { SQUARE {} R {s .5} }")
-
-lex('rule EITHER {BL{flip 90}}')
+draw("background {} rule R { SQUARE {s 2 * 2 1} }")
+//draw("rule R { SQUARE {s 2 * 2 1} }")

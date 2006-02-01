@@ -14,12 +14,20 @@ Graphics.prototype.drawCircle = function (center, radius, transform) {
 	dv.drawCurve(pts)
 };
 
+Graphics.prototype.setBackground = function (rgb) {
+	dv.setRealBackground(rgb2long(rgb));
+};
+
 Graphics.prototype.setRGB = function (rgb) {
+	dv.fillStyle = rgb2long(rgb);
+};
+
+function rgb2long (rgb) {
 	var r = Math.floor(255*rgb[0]);
 	var g = Math.floor(255*rgb[1]);
 	var b = Math.floor(255*rgb[2]);
-	dv.fillStyle = (r<<16)+(g<<8)+b;
-};
+	return (r<<16)+(g<<8)+b;
+}
 
 var currentContext = null;
 function startRendering() {

@@ -39,7 +39,9 @@
     </view>
     <hbox visible="${appstate.user_name}" align="right"
           spacing="5" options="ignorelayout">
-      <text visible="${appstate.user_name}"><b>User:</b></text>
+      <view>
+	<text visible="${appstate.user_name}"><b>User:</b></text>
+      </view>
       <text resize="true" text="${appstate.user_name}"/>
       <roundrectbutton visible="${appstate.user_name}" height="20" onclick="doSignout()">Sign out</roundrectbutton>
     </hbox>
@@ -82,5 +84,29 @@
     if (_root['server'] == undefined) server = 'http://localhost:3000';
     if (server == 'remote') server = 'http://make-a-tree.com';
     whoami();
+    //startRendering();
+    var Copyright = "Copyright 2006 Oliver Steele.  All rights reserved.";
+    function trace(obj, m) {
+      var f = obj;
+      if (arguments.length > 1) f = obj[m];
+      if (typeof obj[m] != 'function')
+        return error(f+' is not a function');
+      if (f['tracee'])
+        return warn(f+' is already being traced');
+      obj[m] = function() {
+        info('f('+arguments+')');
+	var value = f.call(arguments);
+	info('f('+arguments+') => ' + value);
+	return value;
+      }
+    }
+    function untrace(obj, m) {
+      var f = obj[m];
+      if (typeof obj[m] != 'function')
+        return error(f+' is not a function');
+      if (!f['tracee'])
+        return warn(f+' is not being traced');
+      obj[m] = f.tracee;
+    }
   ]]></script>
 </canvas>

@@ -29,6 +29,9 @@ Context.prototype = {
             this.stats.rules += 1;
         }
     },
+	setBackground: function (hsv) {
+		this.graphics.setBackgroundHSV(hsv);
+	},
     drawPolygon: function (points) {
         var points = this.transform.transformPoints(points);
         this.graphics.setHSV(this.color);
@@ -67,6 +70,7 @@ Context.prototype = {
 };
 
 Model.prototype.draw = function (context, name) {
+	context.setBackground(this.background);
 	if (!name) name = this.startName;
     var rule = this.choose(name);
     rule && rule.draw(context);

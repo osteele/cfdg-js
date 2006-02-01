@@ -22,7 +22,7 @@
     </method>
   </class>
   
-  <class name="labeled" extends="hbox">
+  <class name="labeled" extends="hbox" width="100%">
     <attribute name="label" type="string" value=""/>
     <attribute name="text" type="text" value=""/>
     <text width="50" fontstyle="bold" text="${parent.label}"/>
@@ -53,7 +53,7 @@
       <hbox options="ignorelayout" valign="bottom"
             visible="${zoomAttributes.doc_id != null}">
         <image id="zoomImage" width="150" height="150"/>
-        <vbox id="zoomAttributes">
+        <vbox id="zoomAttributes" width="300">
           <attribute name="doc_id" value="null"/>
           <labeled name="doc_name" label="Name:"/>
           <labeled name="doc_author" label="Author:"
