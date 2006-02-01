@@ -18,8 +18,9 @@ Graphics.prototype.setBackground = function (rgb) {
 	dv.setRealBackground(rgb2long(rgb));
 };
 
-Graphics.prototype.setRGB = function (rgb) {
-	dv.fillStyle = rgb2long(rgb);
+Graphics.prototype.setRGBA = function (rgba) {
+	dv.fillStyle = rgb2long(rgba);
+	dv.globalAlpha = Math.max(0, Math.min(1, rgba[3]));
 };
 
 function rgb2long (rgb) {

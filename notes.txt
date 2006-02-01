@@ -1,7 +1,6 @@
 Next:
 - octopus is missing
 - attributes too narrow
-- alpha
 
 Language features:
 - pipe

@@ -4,8 +4,8 @@ Graphics.prototype = {
     drawPolygon: function (points) {},
 	drawCircle: function (center, radius, transform) {},
 	drawPath: function (points) {},
-    setRGB: function (rgb) {},
-    setHSV: function (hsv) { this.setRGB(hsv2rgb(hsv)); },
+    setRGBA: function (rgba) {},
+    setHSV: function (hsva) { this.setRGBA(hsv2rgb(hsva).concat([hsva[3]])); },
 	setBackground: function (rgb) {},
 	setBackgroundHSV: function (hsv) {
 		hsv = [hsv.hue, hsv.sat, hsv.brightness];

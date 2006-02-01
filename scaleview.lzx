@@ -7,10 +7,10 @@
       
       <method name="reset">
         clear();
+        this.fillStyle = 0;
+	this.globalAlpha = 1;
         this.xmin = this.ymin = Infinity;
         this.xmax = this.ymax = -Infinity;
-        this.fillStyle = 0;
-        this.lastHsv = [null,null,null];
         this.inPath = false;
       </method>
       

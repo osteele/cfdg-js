@@ -78,9 +78,9 @@
   </method>
 
   <script><![CDATA[
-    function info(s) {Debug.write.call(Debug, arguments)}
-    function warn(s) {Debug.write.call(Debug, arguments)}
-    function error(s) {Debug.write.call(Debug, arguments)}
+    function info(s) {Debug.write.apply(Debug, arguments)}
+    function warn(s) {Debug.write.apply(Debug, arguments)}
+    function error(s) {Debug.write.apply(Debug, arguments)}
     if (_root['server'] == undefined) server = 'http://localhost:3000';
     if (server == 'remote') server = 'http://make-a-tree.com';
     whoami();
@@ -95,10 +95,11 @@
         return warn(f+' is already being traced');
       obj[m] = function() {
         info('f('+arguments+')');
-	var value = f.call(arguments);
+	var value = f.apply(arguments);
 	info('f('+arguments+') => ' + value);
 	return value;
       }
+      obj[m].tracee = f;
     }
     function untrace(obj, m) {
       var f = obj[m];

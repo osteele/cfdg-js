@@ -2,7 +2,7 @@ var Context = function (model) {
 	this.model = model;
 	this.transform = new Transform;
     this.graphics = new Graphics;
-    this.color = [0,0,0];
+    this.color = [0,0,0, 1];
 	this.queue = [];
     this.stats = {rules: 0, cutoff: .0005};
 };
@@ -58,15 +58,10 @@ Context.prototype = {
         this.transform.prescale(1, -1);
         this.transform.prerotate(r);
     },
-    set_hue: function (h) {
-        this.color[0] += h;
-    },
-    set_sat: function (s) {
-        this.color[1] = s;
-    },
-    set_brightness: function (b) {
-        this.color[2] += b;
-    }
+    set_hue: function (h) { this.color[0] += h; },
+    set_sat: function (s) { this.color[1] = s; },
+    set_brightness: function (b) { this.color[2] += this.color[2]*b; },
+    set_alpha: function (a) { this.color[3] += this.color[3]*a; }
 };
 
 Model.prototype.draw = function (context, name) {
