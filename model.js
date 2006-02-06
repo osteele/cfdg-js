@@ -1,3 +1,5 @@
+/* Copyright 2005-2006 Oliver Steele.  All rights reserved. */
+
 // translate rotate scale skew reflect
 var ATTRIBUTE_NAMES = 'x y rotate size sx sy skew flip hue sat brightness alpha'.split(' ');
 var ATTRIBUTE_NAME_SYNONYMS = {s: 'size', r: 'rotate', b: 'brightness', h: 'hue'};

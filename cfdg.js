@@ -45,8 +45,10 @@ Graphics.prototype.viewport = function (xmin, ymin, xmax, ymax) {
 	var scale = Math.min(canvas.width / (xmax - xmin),
 						 canvas.height / (ymax - ymin));
 	//info('scale = ' + scale);
+
 	this.ctx.scale(scale, scale);
-	this.ctx.translate(.5-(xmax+xmin)/2, .5-(ymin+ymax)/2);
+	this.ctx.translate(-xmin, -ymin);
+	//this.ctx.translate(.5-(xmax+xmin)/2, .5-(ymin+ymax)/2);
 };
 
 Graphics.prototype.drawPolygon = function (pts) {
@@ -107,11 +109,12 @@ Graphics.prototype.drawPath = function (pts, isCubic) {
 	}
 };
 
-Graphics.prototype.setRGB = function (rgb) {
+Graphics.prototype.setRGBA = function (rgba) {
 	var s = '';
-	for (var i in rgb)
+	for (var i = 0; i < 3; i++)
 		s += (s ? ',' : '') + Math.floor(255*rgb[i]);
 	this.ctx.fillStyle = 'rgb(' + s + ')';
+	this.ctx.globalAlpha = rgba[3];
 };
 
 function drawNext() {
@@ -164,6 +167,7 @@ function doRender() {
 		return;
 	}
 	cxt = new Context(model);
+	cxt.transform.m[1][1] *= -1;
 	model.randomGenerator = new RepeatableRandom;
 	cxt.graphics.setCanvas(document.getElementById("canvas"));
 	var tm = cxt.transform.m;

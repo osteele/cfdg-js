@@ -1,3 +1,5 @@
+/* Copyright 2006 Oliver Steele.  Some rights reserved. */
+
 var shapeCount;
 
 var HalfUnitCircle = (new Transform()).prescale(.5,.5).

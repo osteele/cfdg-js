@@ -1,3 +1,5 @@
+/* Copyright 2005-2006 Oliver Steele.  All rights reserved. */
+
 function Graphics() {}
 
 Graphics.prototype = {

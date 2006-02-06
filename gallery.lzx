@@ -43,8 +43,12 @@
       filelistdata.setSrc(server + "/document/list");
       filelistdata.doRequest();
     </method>
-    <text visible="${!loadDialog.gallery_loaded}" options="ignoreslayout">Loading gallery...</text>
-    <text>Click on an image to load it.  This will replace the current document.</text>
+    <text visible="${!loadDialog.gallery_loaded}" options="ignoreslayout"
+	  text="Loading gallery..."/>
+    <text>
+      Click on an image to load it.
+      This will replace the current document.
+    </text>
     <vbox id="v1" width="500" height="400" datapath="filelistdata:/documents">
       <view width="100%" height="350">
         <wrappinglayout/>
@@ -53,7 +57,7 @@
       <hbox options="ignorelayout" valign="bottom"
             visible="${zoomAttributes.doc_id != null}">
         <image id="zoomImage" width="150" height="150"/>
-        <vbox id="zoomAttributes" width="300">
+        <vbox id="zoomAttributes" width="100%">
           <attribute name="doc_id" value="null"/>
           <labeled name="doc_name" label="Name:"/>
           <labeled name="doc_author" label="Author:"

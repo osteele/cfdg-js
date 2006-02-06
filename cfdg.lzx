@@ -3,9 +3,9 @@
   <script src="parser.js"/>
   <script src="graphics.js"/>
   <script src="drawing.js"/>
+  <script src="render.js"/>
   <include href="incubator/roundrectbutton.lzx"/>
   <include href="incubator/scrolledittext.lzx"/>
-  <script src="render.js"/>
   <include href="scaleview.lzx"/>
   <include href="gallery.lzx"/>
   <include href="login.lzx"/>

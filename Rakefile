@@ -1,13 +1,18 @@
+require 'ows_tasks'
 require 'openlaszlo_tasks'
 
 desc "Upload the app to the server"
 task :app_deploy => 'cfdg.swf' do
-  sh "rsync -avz cfdg.swf osteele@osteele.com:tree.com/public"
+  rsync 'cfdg.swf' 'osteele@osteele.com:tree.com/public'
 end
 
 desc "Sync the server to svn"
 task :svn_deploy do
   sh "ssh osteele@osteele.com svn up tree.com"
+end
+
+task :deploy_html do
+  rsync ['cfdg.html', 'cfdg.js', 'parser.js', 'model.js', 'graphics.js', 'drawing.js'], 'osteele@osteele.com:tree.com/public/javascripts'
 end
 
 desc "Deploy the app and pages to the server"
