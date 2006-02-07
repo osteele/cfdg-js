@@ -3,7 +3,7 @@ require 'openlaszlo_tasks'
 
 desc "Upload the app to the server"
 task :app_deploy => 'cfdg.swf' do
-  rsync 'cfdg.swf' 'osteele@osteele.com:tree.com/public'
+  rsync 'cfdg.swf', 'osteele@osteele.com:tree.com/public'
 end
 
 desc "Sync the server to svn"

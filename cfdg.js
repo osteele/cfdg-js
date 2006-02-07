@@ -1,14 +1,14 @@
+/* Copyright 2006 Oliver Steele.  All rights reserved. */
+
 //var interval_name = setInterval('draw()',100);
 //clearInterval('animateShape()',500);
 
 canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 ctx.save();
-//ctx.translate(50, 50);
-//ctx.scale(10, 10);
 
 var Stats;
-var State;
+var Bounds;
 
 HalfUnitCircle = new Transform().prescale(.5,.5).
 	transformPoints(makeCubicCircle());
@@ -77,36 +77,40 @@ Graphics.prototype.drawPath = function (pts, isCubic) {
 			ctx.lineTo(x, y);
 	}
 	ctx.fill();
-	var mins = [State.xmin,State.ymin];
-	var maxs = [State.xmax,State.ymax];
-	if (State.xmin == null) {
+	var mins = [Bounds.xmin,Bounds.ymin];
+	var maxs = [Bounds.xmax,Bounds.ymax];
+	if (Bounds.xmin == null) {
 		mins = [pts[0][0],pts[0][1]];
 		maxs = [pts[0][0],pts[0][1]];
 	}
-	for (var dim in mins)
+	for (var d in mins)
 		for (var i = 0; i < pts.length; i++) {
-			var x = pts[i][dim];
-			mins[dim] = Math.min(mins[dim], x);
-			maxs[dim] = Math.max(maxs[dim], x);
+			var x = pts[i][d];
+			mins[d] = Math.min(mins[d], x);
+			maxs[d] = Math.max(maxs[d], x);
 		}
-	if (mins[0] < State.xmin || mins[1] < State.ymin ||
-		maxs[0] > State.xmax || maxs[1] > State.ymax) {
-		/*if (mins[0] < State.xmin) info('x ' + mins[0] + ' < ' + State.xmin);
-		if (mins[1] < State.ymin) info('x ' + mins[1] + ' < ' + State.xmin);
-		if (maxs[0] > State.xmax) info('x ' + maxs[0] + ' > ' + State.xmax);
-		if (maxs[1] > State.ymax) info('x ' + maxs[1] + ' > ' + State.ymax);*/
-		var xmin = mins[0], ymin = mins[1], xmax = maxs[0], ymax = maxs[1];
-		var dx = xmax - xmin, dy = ymax - ymin;
-		var firstTime = State.xmin == null;
-		this.rescale = this.rescale || .33;
-		var rs = this.rescale *= 1.1;
-		if (firstTime || xmin < State.xmin) State.xmin = xmin - dx*rs;
-		if (firstTime || ymin < State.ymin) State.ymin = ymin - dy*rs;
-		if (firstTime || xmax > State.xmax) State.xmax = xmax + dx*rs;
-		if (firstTime || ymax > State.ymax) State.ymax = ymax + dy*rs;
-		if (State.xmin < State.xmax && State.ymin < State.ymax)
-			rescaleFlag = true;
-	}
+    expandBounds(mins[0], mins[1], maxs[0], maxs[1]);
+};
+
+function expandBounds(x0_, y0_, x1_, y1_) {
+    var x0 = Bounds.xmin, y0 = Bounds.ymin, x1 = Bounds.xmax, y1 = Bounds.ymax;
+    x0 = Math.min(x0, x0_);
+    y0 = Math.min(y0, y0_);
+    x1 = Math.max(x1, x1_);
+    y1 = Math.max(y1, y1_);
+    if (x0 != Bounds.xmin || y0 != Bounds.ymin ||
+        x1 != Bounds.xmax || y1 != Bounds.ymax) {
+        var rescale = .10; //this.rescale = this.rescale || .33;
+        if (x0 < Bounds.xmin)
+            x0 -= rescale * (Bounds.xmax - Bounds.xmin);
+        if (Bounds.xmax < x1)
+            x1 += rescale * (Bounds.xmax - Bounds.xmin);
+        if (y0 < Bounds.xmin)
+            y0 -= rescale * (Bounds.ymax - Bounds.ymin);
+        if (Bounds.xmax < y1)
+            y1 += rescale * (Bounds.ymax - Bounds.ymin);
+        Bounds = {xmin: x0, ymin: y0, xmax: x1, ymax: y1, rescale: true};
+    }
 };
 
 Graphics.prototype.setRGBA = function (rgba) {
@@ -118,19 +122,15 @@ Graphics.prototype.setRGBA = function (rgba) {
 };
 
 function drawNext() {
-	if (rescaleFlag) {
-		//info("scale to " + State.xmin + ", " + State.ymin + ", " + State.xmax + ", " + State.ymax);
-		var s = .25*(State.xmax-State.xmin);
-		//State.xmin -= s; State.xmax += s;
-		var s = .25*(State.ymax-State.ymin);
-		//State.ymin -= s; State.ymax += s;
-		cxt.graphics.viewport(State.xmin, State.ymin, State.xmax, State.ymax);
+	if (Bounds.rescale) {
+		//info("scale to " + Bounds.xmin + ", " + Bounds.ymin + ", " + Bounds.xmax + ", " + Bounds.ymax);
+		cxt.graphics.viewport(Bounds.xmin, Bounds.ymin, Bounds.xmax, Bounds.ymax);
 		cxt.queue = [];
 		model.randomGenerator.rewind();
 		model.draw(cxt);
 		Stats.shapeCount = 0;
 		Stats.resetCount += 1;
-		rescaleFlag = false;
+		Bounds.rescale = false;
 	}
 	cxt.flush(100);
 	
@@ -175,7 +175,7 @@ function doRender() {
 	//tm[1][1] *= -1;
 	//cxt.stats.cutoff *= Math.abs(tm[0][0] * tm[1][1]);
 	//cxt.stats.cutoff /= 100;
-	State = {xmin: null, xmax: null, ymin: null, ymax: null};
+	Bounds = {xmin: null, xmax: null, ymin: null, ymax: null};
 	Stats = {startTime: (new Date).getTime(),
 			 shapeCount: 0, resetCount: 0};
 	var canvas = document.getElementById("canvas");
