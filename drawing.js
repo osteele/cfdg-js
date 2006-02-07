@@ -36,11 +36,11 @@ Context.prototype = {
 	},
     drawPolygon: function (points) {
         var points = this.transform.transformPoints(points);
-        this.graphics.setHSV(this.color);
+        this.graphics.setHSVA(this.color);
 		this.graphics.drawPolygon(points);
     },
 	drawCircle: function (center, radius) {
-        this.graphics.setHSV(this.color);
+        this.graphics.setHSVA(this.color);
 		this.graphics.drawCircle(center, radius, this.transform);
 	},
     transform: function (points) {return this.transform.transform(points)},
@@ -62,7 +62,9 @@ Context.prototype = {
     },
     set_hue: function (h) { this.color[0] += h; },
     set_sat: function (s) { this.color[1] = s; },
-    set_brightness: function (b) { this.color[2] += this.color[2]*b; },
+    set_brightness: function (b) { 
+        this.color[2] += (1-this.color[2])*b;
+    },
     set_alpha: function (a) { this.color[3] += this.color[3]*a; }
 };
 

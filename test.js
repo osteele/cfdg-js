@@ -27,5 +27,5 @@ function draw(string) {
     return parse(string, 'draw')
 }
 
-draw("background {} rule R { SQUARE {s 2 * 2 1} }")
+draw("rule R { SQUARE {sat 1 b 1} }")
 //draw("rule R { SQUARE {s 2 * 2 1} }")

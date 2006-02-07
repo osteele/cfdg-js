@@ -7,7 +7,7 @@ Graphics.prototype = {
 	drawCircle: function (center, radius, transform) {},
 	drawPath: function (points) {},
     setRGBA: function (rgba) {},
-    setHSV: function (hsva) { this.setRGBA(hsv2rgb(hsva).concat([hsva[3]])); },
+    setHSVA: function (hsva) { this.setRGBA(hsv2rgb(hsva).concat([hsva[3]])); },
 	setBackground: function (rgb) {},
 	setBackgroundHSV: function (hsv) {
 		hsv = [hsv.hue, hsv.sat, hsv.brightness];
