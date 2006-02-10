@@ -1,6 +1,9 @@
 Next:
-- octopus is missing
-- attributes too narrow
+- re-test gallery items
+- re-test sign in
+- copyright/help
+- more items in gallery
+- "mine" vs. "other"
 
 Language features:
 - pipe
@@ -12,6 +15,7 @@ Web Features:
 - PDF
 
 Polish:
+- link to dhtml version
 - instructions on main page
 - inline syntax errors
 - examples menu
@@ -34,7 +38,6 @@ Optimize:
 - use actual pixel size for cutoff
 - [[x,y]] vs. [{x: x, y: y}] vs. [x,y]
 - build a Transform for each shape
-- inline setAttribute
 
 Corners:
 <<<<<<< HEAD:notes.txt
@@ -47,5 +50,8 @@ missing rules
 =======
 - case sensitivity?
 
+DHTML:
+- link to swf version
+- copyright
 
 >>>>>>> a201eda... factor gallery file, add document and user_id state:notes.txt
