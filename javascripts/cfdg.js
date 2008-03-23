@@ -1,11 +1,13 @@
 /* Copyright 2006 Oliver Steele.  All rights reserved. */
 
-//var interval_name = setInterval('draw()',100);
-//clearInterval('animateShape()',500);
+var canvas;
+var ctx;
 
-canvas = document.getElementById("canvas");
-var ctx = canvas.getContext("2d");
-ctx.save();
+function setup(canvasElement) {
+    canvas = canvasElement;
+    ctx = canvas.getContext("2d");
+    ctx.save();
+}
 
 var Stats;
 var NewBounds;
@@ -62,9 +64,9 @@ Graphics.prototype.setViewport = function (bounds) {
 	this.ctx.restore();
 	this.clear();
 	this.ctx.save();
-	var scale = Math.min(canvas.width / (xmax - xmin),
-						 canvas.height / (ymax - ymin));
-	//info('scale = ' + scale);
+	var scale = Math.min(
+        canvas.width / (xmax - xmin || 1),
+		canvas.height / (ymax - ymin || 1));
 
 	this.ctx.scale(scale, scale);
 	this.ctx.translate(-xmin, -ymin);
@@ -190,17 +192,17 @@ function drawNext() {
     if (drawingContext.queue.length)
 		msg += "  " + drawingContext.queue.length + " expansions remaining.";
 	if (Stats.resetCount) msg += " (Reset bounds " + Stats.resetCount + " time"+(Stats.resetCount==1?'':'s')+".)";
-	statusField.innerHTML = msg;
+	$('#statusField').html(msg);
 	
 	if (drawingContext.queue.length)
-		setTimeout('drawNext()', 10);
+		setTimeout(drawNext, 10);
 	else
 		stopRendering();
 }
 
 function stopRendering() {
 	if (drawingContext.queue.length)
-		statusField.innerHTML = "<font color='#ff0000'>Stopped rendering</font> at " + Stats.shapeCount + " shapes after " + Math.round(((new Date).getTime() - Stats.startTime)/1000) + "s, with " + drawingContext.queue.length + " expansions remaining.";
+		$('#statusField').html("<font color='#ff0000'>Stopped rendering</font> at " + Stats.shapeCount + " shapes after " + Math.round(((new Date).getTime() - Stats.startTime)/1000) + "s, with " + drawingContext.queue.length + " expansions remaining.");
 	
 	drawingContext.queue = [];
     drawingContext = null;

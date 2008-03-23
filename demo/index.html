@@ -1,0 +1,27 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>CFDG</title>
+    <link href="styles.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../javascripts/cfdg.model.js"></script>
+    <script type="text/javascript" src="../javascripts/cfdg.parser.js"></script>
+    <script type="text/javascript" src="../javascripts/cfdg.graphics.js"></script>
+    <script type="text/javascript" src="../javascripts/cfdg.drawing.js"></script>
+    <script type="text/javascript" src="../javascripts/cfdg.js"></script>
+    <script type="text/javascript" src="../3rd-party/jquery-1.2.1.min.js"></script>
+    <script type="text/javascript" src="demo.js"></script>
+  </head>
+  <body>
+    <div id="statusField"></div>
+    <button id="renderButton">Render</button>
+    <button id="stopButton">Stop</button>
+    <table><tr><td width="30%">
+      <textarea cols="40" rows="100" id="sourceField"> </textarea>
+      </td><td width="70%" style="height: 500" valign="top">
+      <canvas id="canvas" width="600" height="500"></canvas>
+    </td></tr></table>
+
+    <div id="footer">
+      Copyright 2006 by <a href="/">Oliver Steele</a>.  All rights reserved.
+    </div>
+  </body>
+</html>
