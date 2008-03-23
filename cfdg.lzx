@@ -25,6 +25,13 @@
               multiline="true">
       <pre><include href="miles.cfdg" type="text"/></pre>
     </edittext>
+    <view id="maskText" visible="${appstate.loading}"
+          bgcolor="white" opacity="0.5" clickable="true"
+          x="${sourceField.x}" y="${sourceField.y}"
+          width="${sourceField.width}" height="${sourceField.height}"
+          options="ignorelayout">
+      <text align="center" valign="middle" fontsize="24">Loading</text>
+    </view>
     <view width="2.5%"/>
     <view width="65%" height="95%">
       <scaleview width="${Math.min(parent.width, parent.height)}"
@@ -136,43 +143,37 @@
       m.draw(cxt);
       dv.resetBounds();      
       dv.endFrame();
-      currentContext = {context: cxt, startTime: t0, lastBlit: t0};
       var t1 = (new Date).getTime();
-      statusField.setText("Rendered " + shapeCount + " shapes in " + (t1-t0) + "ms.");
-      appstate.setAttribute('rendering', true);
+      appstate.setAttribute('rendering', {context: cxt, startTime: t0, lastBlit: t0});
     }
   ]]></script>
   <method event="onidle" reference="LzIdle">
-    if (currentContext) {
-      var cxt = currentContext.context;
-      cxt.stats.countdown = 10;
-      cxt.flush();
-      var t0 = currentContext.startTime;
-      var t1 = (new Date).getTime();
-      if (t1-currentContext.lastBlit > 10000) {
-        dv.endFrame();
-        currentContext.lastBlit = t1;
-      }
-      dv.resetBounds();
-      var msg = "Rendered " + shapeCount + " shapes in " + Math.round((t1-t0)/1000) + "s.";
-      if (cxt.queue.length)
-        msg += "  " + cxt.queue.length + " expansions remaining."
-      statusField.setText(msg);
-      if (!cxt.queue.length) {
-        dv.endFrame();
-        appstate.setAttribute('rendering', false);
-        currentContext = null;
-      }
+    if (!appstate.rendering) return;
+    var currentContext = appstate.rendering;
+    var cxt = currentContext.context;
+    cxt.stats.countdown = 10;
+    cxt.flush(50);
+    var t0 = currentContext.startTime;
+    var t1 = (new Date).getTime();
+    if (t1-currentContext.lastBlit > 10000) {
+      dv.endFrame();
+      currentContext.lastBlit = t1;
     }
+    dv.resetBounds();
+    var msg = "Rendered " + shapeCount + " shapes in " + Math.round((t1-t0)/1000) + "s.";
+    if (cxt.queue.length)
+      msg += "  " + cxt.queue.length + " expansions remaining."
+    statusField.setText(msg);
+    if (!cxt.queue.length) stopRendering(true);
   </method>
   <script><![CDATA[
-    function stopRendering() {
-      if (currentContext) {
-        dv.endFrame();
+    function stopRendering(done) {
+      if (!appstate.rendering) return;
+      var currentContext = appstate.rendering;
+      dv.endFrame();
+      if (!done)
         statusField.setText("<font color='#ff0000'>Stopped rendering</font> at " + shapeCount + " shapes after " + Math.round(((new Date).getTime() - currentContext.startTime)/1000) + "s, with " + currentContext.context.queue.length + " expansions remaining.");
-        appstate.setAttribute('rendering', false);
-        currentContext = null;
-      }
+      appstate.setAttribute('rendering', false);
     }
     if (_root['server'] == undefined) server = 'http://localhost:3001';
   ]]></script>
