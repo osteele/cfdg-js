@@ -1,4 +1,4 @@
-<canvas title="CFDG" layout="axis: y">
+<canvas title="CFDG" proxied="false" layout="axis: y">
   <include href="incubator/roundrectbutton.lzx"/>
   <include href="scaleview.lzx"/>
   <script src="model.js"/>
@@ -58,16 +58,16 @@
           options="ignorelayout" width="200">
     <method name="show">
       setAttribute('visible', true);
-      filelistdata.setSrc(server + "/file/list");
+      filelistdata.setSrc(server + "/document/list");
       filelistdata.doRequest();
     </method>
     <text visible="${!appstate.gallery}">Loading gallery...</text>
     <view height="150">
-      <vbox datapath="filelistdata:/files">
-        <roundrectbutton datapath="file" height="20" text="$path{'@name'}">
+      <vbox datapath="filelistdata:/documents">
+        <roundrectbutton datapath="document" height="20" text="$path{'@name'}">
           <method event="onclick">
-            Debug.write(this.text, this.xid);
-            fileloaddata.setSrc(server + '/file/show/' + this.xid);
+            fileloaddata.setSrc(server + '/document/show/' + this.xid);
+            fileloaddata.timeout = 5000;
             fileloaddata.doRequest();
             loadDialog.setAttribute('visible', false);
             appstate.setAttribute('loading', true);
@@ -91,7 +91,7 @@
     <hbox>
       <roundrectbutton height="20" text="Save">
         <method event="onclick">
-          filesaveds.setSrc(server + '/file/save');
+          filesaveds.setSrc(server + '/document/save');
           filesaveds.setQueryType('POST');
           filesaveds.setQueryParam('name', nameField.getText());
           filesaveds.setQueryParam('content', sourceField.getText());
