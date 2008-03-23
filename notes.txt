@@ -1,5 +1,5 @@
 Top:
-- speed
+- gallery
 
 Language features:
 - skew
@@ -7,14 +7,7 @@ Language features:
 - include
 - background
 
-Agenda:
-- try more examples
-- examples menu
-- scrolling text field
-
 Web Features:
-- save
-- view gallery
 - email
 - share
 - PDF
@@ -38,24 +31,10 @@ Literacy:
 - clean up the view resizing mess
 
 Optimize:
-- tune the cutoff
 - [[x,y]] vs. [{x: x, y: y}] vs. [x,y]
-- inline setAttribute
 - build a Transform for each shape
-- [length] instead of push
+- inline setAttribute
 
 
 circles:
 http://www.actionscript.org/forums/showthread.php3?s=&threadid=30328
-
-1s:
-x 0:   0.5   [-.5 .5]
-x 1: -0.5   [.5 1.5]
-x 2: -1.5 [1.5 2.5]
-x 3: -2.5 [2.5 3.5]
-
-2s:
-x 0: 0.5 [-1 1]
-x 1: 0 [0 2]
-x 2: -0.5 [1 3]
-x 3: -1 [2 4]

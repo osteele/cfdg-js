@@ -17,7 +17,7 @@
       <roundrectbutton height="20" onclick="render()" visible="${!appstate.rendering}">Draw</roundrectbutton>
       <roundrectbutton height="20" onclick="stopRendering()" visible="${appstate.rendering}">Stop</roundrectbutton>
     </view>
-    <roundrectbutton height="20" onclick="loadDialog.show()">Open</roundrectbutton>
+    <roundrectbutton height="20" onclick="loadDialog.show()">Load</roundrectbutton>
     <roundrectbutton height="20" onclick="saveDialog.setAttribute('visible', true)">Save</roundrectbutton>
   </hbox>
   
@@ -114,6 +114,9 @@
       shapeCount += 1;
     };
     Graphics.prototype.setHsv = function (h, s, v) {
+      h = ((h % 360) + 360) % 360;
+      s = Math.min(1, Math.max(0, s));
+      v = Math.min(1, Math.max(0, v));
       var lastHsv = dv.lastHsv;
       if (lastHsv[0] == h && lastHsv[1] == s && lastHsv[2] == v) return;
       dv.lastHsv = [h, s, v];
