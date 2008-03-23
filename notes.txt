@@ -13,10 +13,12 @@ Web Features:
 - PDF
 
 Polish:
+- instructions on main page
 - inline syntax errors
 - copyright
-- better circles (cf. builtin)
-- note about 
+- examples menu
+- auto-color
+- "strict" mode
 
 Errors for:
 - unknown rules
@@ -34,7 +36,18 @@ Optimize:
 - [[x,y]] vs. [{x: x, y: y}] vs. [x,y]
 - build a Transform for each shape
 - inline setAttribute
+- faster circles
+- flash xform
 
 
 circles:
 http://www.actionscript.org/forums/showthread.php3?s=&threadid=30328
+
+
+Corners:
+- "s 1 s 2 3"
+- invalid attribute name
+- "line{TRIANGLE{s"
+
+case sensitive rules
+missing rules

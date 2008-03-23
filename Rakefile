@@ -1,7 +1,7 @@
 require 'openlaszlo_tasks'
 
 desc "Upload the app to the server"
-task :deploy_app => 'cfdg.swf' do
+task :app_deploy => 'cfdg.swf' do
   sh "rsync -avz cfdg.swf osteele@osteele.com:tree.com/public"
 end
 

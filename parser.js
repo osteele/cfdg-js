@@ -1,35 +1,22 @@
-/*
-Implement notes:
-- OL has a bug where local "rule" hides global "Rule" from new.
-- "for (var i in ar)" traverses backwards in Flash
-
-Tests:
-- blank lines
-
-Corners:
-- tabs
-- EOF
-- invalid attribute name
-- "s 1 s 2 3"
-- "line{TRIANGLE{s"
- */
-
 var EOF = -1;
 var PUNCTUATION = "()[]{};";
 
 // Flash can't split on regular expressions, or we could split on /\n|\r/
-function splitSplit(string, a, b) {
-	var lines = string.split(a);
+String.prototype.split2 = function (a, b) {
+	var lines = this.split(a);
     for (var i = 0; i < lines.length; i++)
         lines.splice.apply(lines, [i, 1].concat(lines[i].split(b)));
     return lines;
-}
+};
+
+String.prototype.lines = function () {return this.split2('\r', '\n');};
+String.prototype.words = function () {return this.split2(' ', '\t');};
 
 function lex(text, parser) {
     parser = parser || {receive: function (type, token) {print(type, ": ", token)}};
-	var lines = splitSplit(text, "\r", "\n");
+	var lines = text.lines();
 	for (var i = 0; i < lines.length; i++) {
-		var words = splitSplit(lines[i], " ", "\t");
+		var words = lines[i].words();
 		while (words.length && !words[0]) words.shift();
         if (!words.length) continue;
 		if (words[0].charAt(0)=='#') continue;
@@ -119,8 +106,6 @@ Parser.prototype = {
 	
 	rule_body: function (name) {
 		this.builder.start_child(name);
-		for (var i in this.builder.attribute_names)
-			attributes[this.builder.attribute_names[i]] = this.handle_attr_name;
 		this.expect('{', function () {
 						this.builder.start_attribute_set();
 						this.end_punctuation = '}';

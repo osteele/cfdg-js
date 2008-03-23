@@ -17,7 +17,7 @@
       <roundrectbutton height="20" onclick="render()" visible="${!appstate.rendering}">Draw</roundrectbutton>
       <roundrectbutton height="20" onclick="stopRendering()" visible="${appstate.rendering}">Stop</roundrectbutton>
     </view>
-    <roundrectbutton height="20" onclick="loadDialog.show()">Load</roundrectbutton>
+    <roundrectbutton height="20" onclick="loadDialog.show()">Gallery</roundrectbutton>
     <roundrectbutton height="20" onclick="saveDialog.setAttribute('visible', true)">Save</roundrectbutton>
   </hbox>
   
@@ -62,7 +62,22 @@
       filelistdata.doRequest();
     </method>
     <text visible="${!appstate.gallery}">Loading gallery...</text>
-    <view height="150">
+    <view height="150" datapath="filelistdata:/documents">
+      <wrappinglayout/>
+      <hbox datapath="document">
+	<method event="onclick">
+	  fileloaddata.setSrc(server + '/document/show/' + this.xid);
+	  fileloaddata.timeout = 5000;
+	  fileloaddata.doRequest();
+	  loadDialog.setAttribute('visible', false);
+	  appstate.setAttribute('loading', true);
+	  fileloaddata.data = null;
+	</method>
+	<image datapath="@image"/>
+	<text datapath="@name"/>
+      </hbox>
+    </view>
+    <!--view height="150">
       <vbox datapath="filelistdata:/documents">
         <roundrectbutton datapath="document" height="20" text="$path{'@name'}">
           <method event="onclick">
@@ -76,8 +91,7 @@
           <attribute name="xid" value="$path{'@id'}"/>
         </roundrectbutton>
       </vbox>
-    </view>
-  
+    </view-->
   </window>
   <dataset name="filesaveds"
            ondata="statusField.setText(filesaveds.data)"/>

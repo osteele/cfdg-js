@@ -78,6 +78,8 @@ Call.prototype.draw = function (context) {
     context.invoke(this.name);
 };
 
+var Sqrt3 = Math.sqrt(3);
+
 var Shapes = {
 	CIRCLE: function (context) {
 		if (Math.abs(context.transform.determinant()) < context.stats.cutoff*2)
@@ -99,8 +101,8 @@ var Shapes = {
 		context.drawPath("SQUARE", pts);
 	},
 	TRIANGLE: function (context) {
-        var y = -0.5/Math.sqrt(3);
-		var pts = [[-.5,y], [.5,y], [0, y+Math.sqrt(3)/2]];
+        var y = -0.5/Sqrt3;
+		var pts = [[-.5,y], [.5,y], [0, y+Sqrt3/2]];
 		context.drawPath("TRIANGLE", pts);
 	}
 }
