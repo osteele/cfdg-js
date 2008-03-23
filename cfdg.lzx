@@ -32,15 +32,15 @@
     </view>
   </hbox>
   
-  <dataset name="filelistdata" src="http://localhost:3001/file/list"/>
-  <dataset name="fileloaddata" src="http://localhost:3001/file/show"
+  <dataset name="filelistdata"/>
+  <dataset name="fileloaddata"
            ondata="sourceField.setText(fileloaddata.data.childNodes[0].data)"/>
   <window id="loadDialog" title="Load"
           visible="false" closeable="true" layout="axis: vertical"
           options="ignorelayout" width="200">
     <method name="show">
       setAttribute('visible', true);
-      //filelistdata.setSrc("http://localhost:3001/file/list");
+      filelistdata.setSrc(server + "/file/list");
       filelistdata.doRequest();
     </method>
     <view height="150">
@@ -48,7 +48,7 @@
         <roundrectbutton datapath="file" height="20" text="$path{'@name'}">
           <method event="onclick">
             Debug.write(this.text, this.xid);
-            fileloaddata.setSrc('http://localhost:3001/file/show/' + this.xid);
+            fileloaddata.setSrc(server + '/file/show/' + this.xid);
             fileloaddata.doRequest();
             loadDialog.setAttribute('visible', false);
           </method>
@@ -61,7 +61,7 @@
     </roundrectbutton-->
   </window>
   
-  <dataset name="filesaveds" src="http://localhost:3001/file/save"
+  <dataset name="filesaveds"
            ondata="statusField.setText(filesaveds.data)"/>
   <window id="saveDialog" title="Save"
           visible="false"
@@ -73,6 +73,7 @@
     <hbox>
       <roundrectbutton height="20" text="Save">
         <method event="onclick">
+          filesaveds.setSrc(server + '/file/save');
           filesaveds.setQueryType('POST');
           filesaveds.setQueryParam('name', nameField.getText());
           filesaveds.setQueryParam('content', sourceField.getText());
@@ -173,5 +174,6 @@
         currentContext = null;
       }
     }
+    if (_root['server'] == undefined) server = 'http://localhost:3001';
   ]]></script>
 </canvas>

@@ -12,7 +12,7 @@ body { background-color: #ffffff; }
 #flashcontent { height: 100%; }
 .fallback { margin: 5px }
 </style></head>
-<script type="text/javascript" src="flashobject.js"></script>
+<script type="text/javascript" src="/javascripts/flashobject.js"></script>
 <body>
 
 <div id="flashcontent">
@@ -24,8 +24,8 @@ body { background-color: #ffffff; }
 <script type="text/javascript">
 var fo = new FlashObject("cfdg.swf", "cloud", "100%", "100%", "7", "#FFFFFF");
 fo.addParam("scale", "noscale");
-fo.addVariable("source", "server");
 fo.addVariable("lzproxied", "false");
+fo.addVariable("server", "");
 fo.write("flashcontent");
 </script>
 
