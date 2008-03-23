@@ -8,6 +8,8 @@
   
   <node id="appstate">
     <attribute name="rendering" value="false"/>
+    <attribute name="loading" value="false"/>
+    <attribute name="gallery" value="false"/>
   </node>
   
   <hbox width="100%" height="20">
@@ -15,22 +17,24 @@
       <roundrectbutton height="20" onclick="render()" visible="${!appstate.rendering}">Draw</roundrectbutton>
       <roundrectbutton height="20" onclick="stopRendering()" visible="${appstate.rendering}">Stop</roundrectbutton>
     </view>
-    <roundrectbutton height="20" onclick="loadDialog.show()">Load</roundrectbutton>
+    <roundrectbutton height="20" onclick="loadDialog.show()">Open</roundrectbutton>
     <roundrectbutton height="20" onclick="saveDialog.setAttribute('visible', true)">Save</roundrectbutton>
   </hbox>
   
   <text width="100%" height="20" id="statusField"/>
   <hbox width="100%" height="${parent.height-40}">
-    <edittext width="30%" height="100%" id="sourceField"
-              multiline="true">
-      <pre><include href="miles.cfdg" type="text"/></pre>
-    </edittext>
+    <view width="30%" height="100%">
+      <inputtext id="sourceField" width="100%" height="200%" multiline="true">
+        <pre><include href="miles.cfdg" type="text"/></pre>
+      </inputtext>
+      <scrollbar/>
+    </view>
     <view id="maskText" visible="${appstate.loading}"
           bgcolor="white" opacity="0.5" clickable="true"
           x="${sourceField.x}" y="${sourceField.y}"
           width="${sourceField.width}" height="${sourceField.height}"
           options="ignorelayout">
-      <text align="center" valign="middle" fontsize="24">Loading</text>
+      <text align="center" y="33%" fontsize="24">Loading</text>
     </view>
     <view width="2.5%"/>
     <view width="65%" height="95%">
@@ -39,17 +43,25 @@
     </view>
   </hbox>
   
-  <dataset name="filelistdata"/>
+  <dataset name="filelistdata"
+           ondata="appstate.setAttribute('gallery', true)"/>
   <dataset name="fileloaddata"
-           ondata="sourceField.setText(fileloaddata.data.childNodes[0].data)"/>
-  <window id="loadDialog" title="Load"
-          visible="false" closeable="true" layout="axis: vertical"
+           ondata="Debug.write('ondata');
+                   sourceField.setText(fileloaddata.data.childNodes[0].data);
+                   appstate.setAttribute('loading', false);"
+           onerror="Debug.write('onerror');
+                    appstate.setAttribute('loading', false);"
+           ontimeout="Debug.write('onerror');
+                    appstate.setAttribute('loading', false);"/>
+  <window id="loadDialog" title="Open..."
+          visible="false" closeable="true"
           options="ignorelayout" width="200">
     <method name="show">
       setAttribute('visible', true);
       filelistdata.setSrc(server + "/file/list");
       filelistdata.doRequest();
     </method>
+    <text visible="${!appstate.gallery}">Loading gallery...</text>
     <view height="150">
       <vbox datapath="filelistdata:/files">
         <roundrectbutton datapath="file" height="20" text="$path{'@name'}">
@@ -58,16 +70,15 @@
             fileloaddata.setSrc(server + '/file/show/' + this.xid);
             fileloaddata.doRequest();
             loadDialog.setAttribute('visible', false);
+            appstate.setAttribute('loading', true);
+            fileloaddata.data = null;
           </method>
           <attribute name="xid" value="$path{'@id'}"/>
         </roundrectbutton>
       </vbox>
     </view>
-    <!--roundrectbutton height="20" onclick="loadDialog.setVisible(false)">
-      Close
-    </roundrectbutton-->
-  </window>
   
+  </window>
   <dataset name="filesaveds"
            ondata="statusField.setText(filesaveds.data)"/>
   <window id="saveDialog" title="Save"
@@ -166,6 +177,16 @@
     statusField.setText(msg);
     if (!cxt.queue.length) stopRendering(true);
   </method>
+  <method event="onidle" reference="LzIdle"><![CDATA[
+    if (!appstate.loading) return;
+    if (!fileloaddata.data) return;
+    var s = '';
+    var lines = fileloaddata.data.childNodes[0].data.split("\n");
+    for (var i = 0; i < lines.length; i++)
+      s += lines[i];
+    sourceField.setText(s);
+    appstate.setAttribute('loading', false);
+  ]]></method>
   <script><![CDATA[
     function stopRendering(done) {
       if (!appstate.rendering) return;
@@ -175,6 +196,7 @@
         statusField.setText("<font color='#ff0000'>Stopped rendering</font> at " + shapeCount + " shapes after " + Math.round(((new Date).getTime() - currentContext.startTime)/1000) + "s, with " + currentContext.context.queue.length + " expansions remaining.");
       appstate.setAttribute('rendering', false);
     }
-    if (_root['server'] == undefined) server = 'http://localhost:3001';
+    if (_root['server'] == undefined) server = 'http://localhost:3000';
+    if (server == 'remote') server = 'http://make-a-tree.com';
   ]]></script>
 </canvas>
