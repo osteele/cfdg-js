@@ -1,24 +1,19 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
  <head>
   <title>CFDG</title>
-   <script type="text/javascript" src="model.js"></script>
-   <script type="text/javascript" src="parser.js"></script>
-   <script type="text/javascript" src="graphics.js"></script>
-   <script type="text/javascript" src="drawing.js"></script>
-   <script type="text/javascript" src="fvlogger/logger.js"></script>
-   <link rel="stylesheet" type="text/css" href="fvlogger/logger.css"/>
+   <script type="text/javascript" src="javascripts/model.js"></script>
+   <script type="text/javascript" src="javascripts/parser.js"></script>
+   <script type="text/javascript" src="javascripts/graphics.js"></script>
+   <script type="text/javascript" src="javascripts/drawing.js"></script>
 </head>
  <body>
-   <div id="fvlogger"></div>
-   <button id="renderButton" onclick="doRender()">Render</button>
-   <button id="stopButton" onclick="stopRendering()" style="display:none">Stop</button>
    <div id="statusField"></div>
 <table><tr><td width="30%">
    <textarea cols="40" rows="100" id="sourceField"> </textarea>
 </td><td width="70%" style="height: 500" valign="top">
    <canvas id="canvas" width="600" height="500"></canvas>
 </td></tr></table>
-   <script type="text/javascript" src="cfdg.js"></script>
+   <script type="text/javascript" src="javascripts/cfdg.js"></script>
 
 <div style="position: absolute; bottom: 0; width: 70%">
 <hr/>
