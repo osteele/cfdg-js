@@ -1,0 +1,28 @@
+* Architecture
+- decouple driver from demo
+- css for styling
+
+* Language
+- repeat
+- pipe
+- include
+
+* Demo
+- examples menu
+
+* Features
+- inline syntax errors
+- syntax coloring
+
+* Errors checking
+- unknown rules
+- "s 1 2 3"
+- "s 1 s 2 3"
+- invalid attribute name
+- invalid attribute name
+- "line{TRIANGLE{s"
+
+* Optimize
+- use actual pixel size for cutoff
+- [[x,y]] vs. [{x: x, y: y}] vs. [x,y]
+- build a Transform for each shape

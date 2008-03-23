@@ -1,0 +1,11 @@
+cfdg-js is a JavaScript implementation of Chris Coyne's "Context Free
+Design Grammar".
+
+It's open source, under the MIT License (enclosed).
+
+I'm currently resuscitating it.  It doesn't have a clear API, it
+doesn't have any specs, and some parts don't work.  I haven't yet
+inventoried what does and doesn't.
+
+Home Page: http://github.com/osteele/cfdg-js
+Author: Oliver Steele
