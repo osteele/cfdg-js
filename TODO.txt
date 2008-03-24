@@ -1,5 +1,8 @@
 * Architecture
-- decouple driver from demo
+- turn driver into an object
+
+* Literacy
+- namespaces
 - css for styling
 
 * Language
@@ -13,8 +16,10 @@
 * Features
 - inline syntax errors
 - syntax coloring
+- jquery plugin
+- svg back end
 
-* Errors checking
+* Error checking
 - unknown rules
 - "s 1 2 3"
 - "s 1 s 2 3"

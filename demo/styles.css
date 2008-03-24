@@ -1,0 +1,10 @@
+#footer {
+    border-top: 1px solid gray;
+    position: absolute;
+    bottom: 0;
+}
+
+body #renderButton {display:inline}
+body #stopButton {display:none}
+body.rendering #renderButton {display:none}
+body.rendering #stopButton {display:inline}

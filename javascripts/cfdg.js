@@ -3,12 +3,6 @@
 var canvas;
 var ctx;
 
-function setup(canvasElement) {
-    canvas = canvasElement;
-    ctx = canvas.getContext("2d");
-    ctx.save();
-}
-
 var Stats;
 var NewBounds;
 
@@ -121,91 +115,100 @@ Graphics.prototype.setRGBA = function (rgba) {
 	this.ctx.globalAlpha = rgba[3];
 };
 
-function doRender() {
-	model = new Model;
-	var sourceText = document.getElementById("sourceField").value;
-	var err = lex(sourceText, new Parser(new Builder(model)));
-	if (err) {
-		var msg = "syntax error at \'" + err.token + "\' on line " + err.lineno + ": " + err.message;
-		alert(msg);
-		return;
-	}
-	drawingContext = new Context(model); // global
-	drawingContext.transform.m[1][1] *= -1;
-	model.randomGenerator = new RepeatableRandom;
-    var graphics = drawingContext.graphics;
-	graphics.setCanvas(document.getElementById("canvas"));
-    graphics.reset();
-    graphics.rescale = 0.25;
-	var tm = drawingContext.transform.m;
-	//tm[0][0] = tm[1][1] = 20;
-	//tm[1][1] *= -1;
-	//drawingContext.stats.cutoff *= Math.abs(tm[0][0] * tm[1][1]);
-	//drawingContext.stats.cutoff /= 100;
-    bounds = new Bounds(0, 0, 0, 0);
-	drawingContext.graphics.setViewport(bounds);
-	drawingContext.graphics.bounds = bounds;
-	Stats = {
-        startTime: (new Date).getTime(),
-        shapeCount: 0,
-        resetCount: 0
-    };
-	model.draw(drawingContext);
-	drawNext();
-	document.getElementById('renderButton').style.display = 'none';
-	document.getElementById('stopButton').style.display = 'inline';
-}
+var CFDG = window.CFDG || {};
 
-function drawNext() {
-    if (drawingContext == null) return; // if stopRendering has been called
-    var graphics = drawingContext.graphics;
-    var oldBounds = graphics.viewport;
-    var newBounds = graphics.bounds;
-	if (!newBounds.equals(oldBounds)) {
-        var w = newBounds.xmax - newBounds.xmin;
-        var h = newBounds.ymax - newBounds.ymin;
-        var rescale = graphics.rescale;
-        graphics.rescale += 0.05;
-        if (newBounds.xmin < oldBounds.xmin) newBounds.xmin -= rescale * w;
-        if (newBounds.ymin < oldBounds.ymin) newBounds.ymin -= rescale * h;
-        if (newBounds.xmax > oldBounds.xmax) newBounds.xmax += rescale * w;
-        if (newBounds.ymax > oldBounds.ymax) newBounds.ymax += rescale * h;
-		//info("scale to " + Bounds.xmin + ", " + Bounds.ymin + ", " + Bounds.xmax + ", " + Bounds.ymax);
-        w = newBounds.xmax - newBounds.xmin;
-        h = newBounds.xmax - newBounds.xmin;
-        var ar = w / h;
-        var car = graphics.canvas.width / graphics.canvas.height;
-        //if (ar > car) 
-		graphics.setViewport(newBounds);
-        graphics.bounds = newBounds;
-		drawingContext.queue = [];
-		model.randomGenerator.rewind();
-		Stats.shapeCount = 0;
-		Stats.resetCount += 1;
-		model.draw(drawingContext);
-	}
-	drawingContext.flush(100);
-	
-	var t0 = Stats.startTime;
-    var t1 = (new Date).getTime();
-    var msg = "Rendered " + Stats.shapeCount + " shapes in " + Math.round((t1-t0)/1000) + "s.";
-    if (drawingContext.queue.length)
-		msg += "  " + drawingContext.queue.length + " expansions remaining.";
-	if (Stats.resetCount) msg += " (Reset bounds " + Stats.resetCount + " time"+(Stats.resetCount==1?'':'s')+".)";
-	$('#statusField').html(msg);
-	
-	if (drawingContext.queue.length)
-		setTimeout(drawNext, 10);
-	else
-		stopRendering();
-}
+CFDG.Driver = {
+    setup: function(options) {
+        this.options = options;
+        canvas = options.canvas;
+        ctx = canvas.getContext("2d");
+        ctx.save();
+    },
+    
+    start: function(sourceText) {
+	    model = new Model;
+	    var err = lex(sourceText, new Parser(new Builder(model)));
+	    if (err) {
+		    var msg = "syntax error at \'" + err.token + "\' on line " + err.lineno + ": " + err.message;
+		    this.options.onerror(msg);
+		    return;
+	    }
+	    drawingContext = new Context(model); // global
+	    drawingContext.transform.m[1][1] *= -1;
+	    model.randomGenerator = new RepeatableRandom;
+        var graphics = drawingContext.graphics;
+	    graphics.setCanvas(canvas);
+        graphics.reset();
+        graphics.rescale = 0.25;
+	    var tm = drawingContext.transform.m;
+	    //tm[0][0] = tm[1][1] = 20;
+	    //tm[1][1] *= -1;
+	    //drawingContext.stats.cutoff *= Math.abs(tm[0][0] * tm[1][1]);
+	    //drawingContext.stats.cutoff /= 100;
+        bounds = new Bounds(0, 0, 0, 0);
+	    drawingContext.graphics.setViewport(bounds);
+	    drawingContext.graphics.bounds = bounds;
+	    Stats = {
+            startTime: (new Date).getTime(),
+            shapeCount: 0,
+            resetCount: 0
+        };
+	    model.draw(drawingContext);
+        (this.options.onstart||function(){})();
+	    this.step();
+    },
 
-function stopRendering() {
-	if (drawingContext.queue.length)
-		$('#statusField').html("<font color='#ff0000'>Stopped rendering</font> at " + Stats.shapeCount + " shapes after " + Math.round(((new Date).getTime() - Stats.startTime)/1000) + "s, with " + drawingContext.queue.length + " expansions remaining.");
-	
-	drawingContext.queue = [];
-    drawingContext = null;
-	document.getElementById('renderButton').style.display = '';
-	document.getElementById('stopButton').style.display = 'none';
+    step: function() {
+        if (drawingContext == null)
+            // not rendering
+            return;
+        var graphics = drawingContext.graphics,
+            oldBounds = graphics.viewport,
+            newBounds = graphics.bounds;
+	    if (!newBounds.equals(oldBounds)) {
+            var w = newBounds.xmax - newBounds.xmin;
+            var h = newBounds.ymax - newBounds.ymin;
+            var rescale = graphics.rescale;
+            graphics.rescale += 0.05;
+            if (newBounds.xmin < oldBounds.xmin) newBounds.xmin -= rescale * w;
+            if (newBounds.ymin < oldBounds.ymin) newBounds.ymin -= rescale * h;
+            if (newBounds.xmax > oldBounds.xmax) newBounds.xmax += rescale * w;
+            if (newBounds.ymax > oldBounds.ymax) newBounds.ymax += rescale * h;
+            w = newBounds.xmax - newBounds.xmin;
+            h = newBounds.xmax - newBounds.xmin;
+            var ar = w / h;
+            var car = graphics.canvas.width / graphics.canvas.height;
+            //if (ar > car) 
+		    graphics.setViewport(newBounds);
+            graphics.bounds = newBounds;
+		    drawingContext.queue = [];
+		    model.randomGenerator.rewind();
+		    Stats.shapeCount = 0;
+		    Stats.resetCount += 1;
+		    model.draw(drawingContext);
+	    }
+	    drawingContext.flush(100);
+	    
+	    var t0 = Stats.startTime,
+            t1 = new Date().getTime();
+        var msg = "Rendered " + Stats.shapeCount + " shapes in " + Math.round((t1-t0)/1000) + "s.";
+        if (drawingContext.queue.length)
+		    msg += "  " + drawingContext.queue.length + " expansions remaining.";
+	    if (Stats.resetCount) msg += " (Reset bounds " + Stats.resetCount + " time"+(Stats.resetCount==1?'':'s')+".)";
+	    this.options.onstatus(msg);
+	    
+	    if (drawingContext.queue.length)
+		    setTimeout(function() {CFDG.Driver.step()}, 10);
+	    else
+		    this.stop();
+    },
+
+    stop: function() {
+	    if (drawingContext.queue.length)
+	        this.options.onstatus("<font color='#ff0000'>Stopped rendering</font> at " + Stats.shapeCount + " shapes after " + Math.round(((new Date).getTime() - Stats.startTime)/1000) + "s, with " + drawingContext.queue.length + " expansions remaining.");
+	    
+	    drawingContext.queue = [];
+        drawingContext = null;
+        (this.options.onstop||function(){})();
+    }
 }
