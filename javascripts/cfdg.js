@@ -25,38 +25,38 @@ Bounds.prototype.equals = function(bounds) {
 HalfUnitCircle = new Transform().prescale(.5,.5).
 	transformPoints(makeCubicCircle());
 
-var RepeatableRandom = function () {
+var RepeatableRandom = function() {
 	self.store = [];
 	self.index = 0;
 };
 
 RepeatableRandom.prototype = {
-	random: function () {
+	random: function() {
 		if (self.index < self.store.length) return self.store[self.index++];
 		return self.store[self.index++] = Math.random();
 	},
-	rewind: function () {
+	rewind: function() {
 		self.index = 0;
 	}
 };
 
-Graphics.prototype.setCanvas = function (canvas) {
+Graphics.prototype.setCanvas = function(canvas) {
 	this.canvas = canvas;
 	this.ctx = canvas.getContext("2d");
 };
 
-Graphics.prototype.reset = function () {
+Graphics.prototype.reset = function() {
     this.setRGBA([0,0,0,1]);
 }
 
-Graphics.prototype.clear = function () {
+Graphics.prototype.clear = function() {
 	this.ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
 
-Graphics.prototype.setViewport = function (bounds) {
-	var canvas = this.canvas;
-    var xmin = bounds.xmin, ymin = bounds.ymin;
-    var xmax = bounds.xmax, ymax = bounds.ymax;
+Graphics.prototype.setViewport = function(bounds) {
+	var canvas = this.canvas,
+        xmin = bounds.xmin, ymin = bounds.ymin,
+        xmax = bounds.xmax, ymax = bounds.ymax;
 	this.ctx.restore();
 	this.clear();
 	this.ctx.save();
@@ -70,18 +70,18 @@ Graphics.prototype.setViewport = function (bounds) {
 	//this.ctx.translate(.5-(xmax+xmin)/2, .5-(ymin+ymax)/2);
 };
 
-Graphics.prototype.drawPolygon = function (pts) {
+Graphics.prototype.drawPolygon = function(pts) {
 	Stats.shapeCount += 1;
 	this.drawPath(pts, false);
 };
 
-Graphics.prototype.drawCircle = function (center, radius, transform) {
+Graphics.prototype.drawCircle = function(center, radius, transform) {
 	Stats.shapeCount += 1;
 	var pts = transform.transformPoints(HalfUnitCircle);
 	this.drawPath(pts, true);
 };
 
-Graphics.prototype.drawPath = function (pts, isCubic) {
+Graphics.prototype.drawPath = function(pts, isCubic) {
 	var ctx = this.ctx;
 	ctx.beginPath();
 	ctx.moveTo(pts[0][0], pts[0][1]);
@@ -109,7 +109,7 @@ Graphics.prototype.drawPath = function (pts, isCubic) {
     this.bounds = new Bounds(xmin, ymin, xmax, ymax);
 };
 
-Graphics.prototype.setRGBA = function (rgba) {
+Graphics.prototype.setRGBA = function(rgba) {
 	var s = '';
 	for (var i = 0; i < 3; i++)
 		s += (s ? ',' : '') + Math.floor(255*rgba[i]);

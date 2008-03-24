@@ -4,7 +4,8 @@ var EOF = -1;
 var PUNCTUATION = "()[]{}|;";
 
 function lex(text, parser) {
-    parser = parser || {receive: function (type, token) {info(type, ": '" + token + "'")}};
+    parser = parser || {receive: function(type, token) {
+        console.info(type, ": '" + token + "'") }};
 	var lines = text.lines();
 	for (var i = 0; i < lines.length; i++) {
 		var words = lines[i].words();
@@ -26,9 +27,9 @@ function lex(text, parser) {
 					}
 				}
 			}
-            var type = null;
-            var token = word;
-			var c0 = word.charAt(0).toLowerCase();
+            var type = null,
+                token = word,
+                c0 = word.charAt(0).toLowerCase();
 			if (('a' <= c0 && c0 <= 'z') || c0 == '_')
 				type = '<string>';
 			if (('0' <= c0 && c0 <= '9') || ".-".indexOf(c0) >= 0) {
@@ -52,17 +53,17 @@ function lex(text, parser) {
     if (msg) return {message: msg, lineno: i, token: 'end of document'};
 }
 
-var Parser = function (builder) {
+var Parser = function(builder) {
 	this.builder = builder;
 	this.set_initial_state();
 };
 
 Parser.prototype = {
-	receive: function (type, token) {
+	receive: function(type, token) {
 		var fn = this.transitions[token] || this.transitions[type];
 		if (!fn) {
-			var msg = "Expected one of: ";
-			var sep = '';
+			var msg = "Expected one of: ",
+                sep = '';
 			for (var key in this.transitions) {
 				msg += sep + key;
 				sep = ', ';
@@ -77,16 +78,16 @@ Parser.prototype = {
 		}
 	},
 	
-	expect: function () {
+	expect: function() {
 		this.transitions = {};
 		for (var i = 0; i < arguments.length; i += 2)
 			this.transitions[arguments[i]] = arguments[i+1];
 	},
 	
-	set_initial_state: function () {
+	set_initial_state: function() {
 		this.expect('rule', this.rule,
-					'background', function () {
-						this.expect('{', function () {
+					'background', function() {
+						this.expect('{', function() {
 										this.builder.start_background();
 										this.attributes_handle = {
 											rule: this.rule
@@ -95,57 +96,57 @@ Parser.prototype = {
 										this.expect_attribute_name();
 									});
 					},
-					'startshape', function () {
-						this.expect('<string>', function (name) {
+					'startshape', function() {
+						this.expect('<string>', function(name) {
 										this.builder.startshape(name);
 										this.set_initial_state();
 									})
 							});
 	},
 	
-	rule: function () {
+	rule: function() {
 		this.expect(
-			'<string>', function (name) {
+			'<string>', function(name) {
 				this.builder.start_rule(name);
 				this.expect('{', this.rule_body_transitions,
-                            '<number>', function (weight) {
+                            '<number>', function(weight) {
                                 this.builder.add_weight(weight);
                                 this.expect('{', this.rule_body_transitions);
                             });
 			})
 	},
 	
-	rule_body: function (name) {
+	rule_body: function(name) {
 		this.builder.start_child(name);
-		this.expect('{', function () {
+		this.expect('{', function() {
 						this.builder.start_attribute_set();
 						this.attributes_handle = this.rule_body_transitions;
 						this.end_punctuation = '}';
 						this.expect_attribute_name();
 					},
-					'[', function () {
+					'[', function() {
 						this.builder.start_attribute_list();
 						this.attributes_handle = this.rule_body_transitions;
 						this.end_punctuation = ']';
 						this.expect_attribute_name()});
 	},
 	
-	expect_attribute_name: function () {
+	expect_attribute_name: function() {
 		this.expect('<string>', this.attribute_name,
-					this.end_punctuation, function () {
+					this.end_punctuation, function() {
 						this.builder.end_attributes();
 						this.transitions = this.attributes_handle;
 					});
 	},
 	
-	attribute_name: function (name) {
-		this.expect('<number>', function (value) {
+	attribute_name: function(name) {
+		this.expect('<number>', function(value) {
 						this.expect_attribute_name();
-						this.transitions['<number>'] = function (value) {
+						this.transitions['<number>'] = function(value) {
 							this.expect_attribute_name();
 							return this.builder.add_attribute_value(value);
 						};
-						this.transitions['|'] = function () {
+						this.transitions['|'] = function() {
 							this.expect_attribute_name();
 							return this.builder.pipe();
 						}
@@ -154,14 +155,14 @@ Parser.prototype = {
 	},
 
 	rule_body_transitions: {
-		'}': function () {this.expect('rule', this.rule,
+		'}': function() {this.expect('rule', this.rule,
                                       '<eof>', {})},
-		'<string>': function (s) {this.rule_body(s)}
+		'<string>': function(s) {this.rule_body(s)}
 	}
 	
 };
 
-var Builder = function (model) {
+var Builder = function(model) {
 	this.model = model;
     var names = [].concat(ATTRIBUTE_NAMES);
     for (var name in ATTRIBUTE_NAME_SYNONYMS)
@@ -170,95 +171,95 @@ var Builder = function (model) {
 };
 
 Builder.prototype = {
-	startshape: function (name) {
+	startshape: function(name) {
 		//info('builder: startshape ' + name);
 		this.model.startName = name;
 	},
 	
-	start_rule: function (name) {
+	start_rule: function(name) {
 		//info('builder: rule ' + name);
 		this.rule = this.model.makeRule(name);
 	},
 	
-    add_weight: function (weight) {
+    add_weight: function(weight) {
         this.rule.weight = weight;
     },
     
-	start_child: function (name) {
+	start_child: function(name) {
 		//info('builder: child ' + name);
 		this.call = this.rule.addCall(name);
 	},
 	
-	start_attribute_set: function () {
+	start_attribute_set: function() {
 		//info('builder: attribute set');
 		this.attributeSet = {};
 		this.set_attribute_handlers(this.attribute_handlers.set);
 	},
 	
-	start_attribute_list: function () {
+	start_attribute_list: function() {
 		//info('builder: attribute list');
 		this.attributeList = [];
 		this.set_attribute_handlers(this.attribute_handlers.list);
 	},
 	
-	start_background: function () {
+	start_background: function() {
 		//info('builder: background');
 		this.attributeSet = {};
 		this.set_attribute_handlers(this.attribute_handlers.background);
 	},
 	
-	set_attribute_handlers: function (table) {
+	set_attribute_handlers: function(table) {
 		for (var key in table)
 			this[key] = table[key];
 	},
 	
 	attribute_handlers: {
 		set: {
-			add_attribute_helper: function (name, value) {
+			add_attribute_helper: function(name, value) {
 				this.lastAttributeName = name;
 				this.attributeSet[name] = value;
 			},
 			
-			pop_attribute_value: function (name) {
+			pop_attribute_value: function(name) {
 				var value = this.attributeSet[name];
 				delete this.attributeSet[name];
 				return value;
 			},
 			
-			end_attributes: function () {
+			end_attributes: function() {
 				this.call.setAttributeSet(this.attributeSet);
 			}
 		},
 		
 		list: {
-			add_attribute_helper: function (name, value) {
+			add_attribute_helper: function(name, value) {
 				this.lastAttributeName = name;
 				this.attributeList.push([name, value]);
 			},
 			
-			pop_attribute_value: function (name) {
+			pop_attribute_value: function(name) {
 				return this.attributeList.pop()[1];
 			},
 			
-			end_attributes: function () {
+			end_attributes: function() {
 				this.call.setAttributeList(this.attributeList);
 			}
 		},
 		
 		background: {
-			add_attribute_helper: function (name, value) {
+			add_attribute_helper: function(name, value) {
 				if (!BACKGROUND_ATTRIBUTE_NAMES.include(name))
 					return "Invalid attribute name: " + name;
 				this.attributeSet[name] = value;
 			},
 			
-			end_attributes: function () {
+			end_attributes: function() {
 				this.model.setBackground(this.attributeSet);
 			}
 		}
 	},
 	
-	add_attribute: function (name, value) {
+	add_attribute: function(name, value) {
 		//info('builder: add attribute ' + name + ", " + value);
 		if (ATTRIBUTE_NAME_SYNONYMS[name])
 			name = ATTRIBUTE_NAME_SYNONYMS[name];
@@ -269,7 +270,7 @@ Builder.prototype = {
 		this.add_attribute_helper(name, value);
 	},
 	
-	add_attribute_value: function (value) {
+	add_attribute_value: function(value) {
 		var name = this.lastAttributeName;
 		if (ATTRIBUTE_ARITY[name] != 2)
 			return "The \'" + name + "\' attribute can only have one value";
@@ -278,7 +279,7 @@ Builder.prototype = {
         this.add_attribute_helper(name, vector);
 	},
 	
-	pipe: function () {
+	pipe: function() {
 		var name = this.lastAttributeName;
 		if (name == 'hue') {
 			this.pop_attribute_value(name);
