@@ -3,24 +3,6 @@
 var EOF = -1;
 var PUNCTUATION = "()[]{}|;";
 
-// Flash can't split on regular expressions, or we could split on /\n|\r/
-String.prototype.split2 = function (a, b) {
-	var lines = this.split(a);
-    for (var i = 0; i < lines.length; i++)
-        lines.splice.apply(lines, [i, 1].concat(lines[i].split(b)));
-    return lines;
-};
-
-String.prototype.lines = function () {return this.split2('\r', '\n');};
-String.prototype.words = function () {return this.split2(' ', '\t');};
-
-Array.prototype.include = function (item) {
-	for (var i = this.length; --i >= 0; )
-		if (this[i] == item)
-			return true;
-	return false;
-};
-
 function lex(text, parser) {
     parser = parser || {receive: function (type, token) {info(type, ": '" + token + "'")}};
 	var lines = text.lines();
@@ -304,19 +286,3 @@ Builder.prototype = {
 		}
 	}
 };
-
-function parse(string, mode) {
-	var m = new Model;
-	var err = lex(string, new Parser(new Builder(m)));
-	if (err) {
-        print("cfdg: syntax error at \'" + err.token + "\' on line " + err.lineno + ": " + err.message);
-        return;
-    }
-	if (!mode) print(m.to_s());
-	var cxt = new Context(m);
-	if (mode=='draw') m.draw(cxt);
-}
-
-function draw(string) {
-    return parse(string, 'draw')
-}

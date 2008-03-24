@@ -1,5 +1,7 @@
 /* Copyright 2006 Oliver Steele.  All rights reserved. */
 
+var CFDG = window.CFDG || {};
+
 var canvas;
 var ctx;
 
@@ -114,8 +116,6 @@ Graphics.prototype.setRGBA = function (rgba) {
 	this.ctx.fillStyle = 'rgb(' + s + ')';
 	this.ctx.globalAlpha = rgba[3];
 };
-
-var CFDG = window.CFDG || {};
 
 CFDG.Driver = {
     setup: function(options) {

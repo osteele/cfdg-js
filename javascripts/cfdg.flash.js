@@ -2,7 +2,7 @@
 
 var shapeCount;
 
-var HalfUnitCircle = (new Transform()).prescale(.5,.5).
+var HalfUnitCircle = new Transform().prescale(.5,.5).
 	transformPoints(makeQuadraticCircle());
 
 Graphics.prototype.drawPolygon = function (pts) {

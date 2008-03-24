@@ -2,8 +2,10 @@ load('parser.js');
 load('model.js');
 load('graphics.js');
 load("drawing.js");
+
 function info(msg) {print('Info: ' + msg)}
 function error(msg) {print('Error: ' + msg)}
+
 Graphics.prototype.drawPolygon = function (points) {
 	print("polygon: " + points);
 };
@@ -15,7 +17,7 @@ function parse(string, mode) {
 	var m = new Model;
 	var err = lex(string, new Parser(new Builder(m)));
 	if (err) {
-        error("cfdg: syntax error at \'" + err.token + "\' on line " + err.lineno + ": " + err.message);
+        print("cfdg: syntax error at \'" + err.token + "\' on line " + err.lineno + ": " + err.message);
         return;
     }
 	if (!mode) print(m.to_s());
